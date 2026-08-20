@@ -9,9 +9,17 @@
             <input id="input-image" type="file" accept="image/*" hidden>
             <button id="upload-button">Upload image</button>
             <h3>Selected image:</h3>
-            <img id="uploaded-image" alt="Uploaded image">
+            <img id="uploaded-image" alt="Uploaded image" width="800">
+            <button id="upload-finish-button">Finished</button>
         </div>
 
-        <script src="app.js"></script>
+        <div>
+            <h2>Step 2: Align Corners</h2>
+            <canvas id="corner-align-canvas"></canvas>
+            <button id="corner-finish-button">Finished</button>
+        </div>
+
+        <script type="module" src="dist/app.js"></script>
+        <script type="module" src="dist/corners.js"></script>
     </body>
 </html>
