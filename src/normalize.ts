@@ -28,6 +28,47 @@ function getPixelColor(imageData: ImageData, x: number, y: number): RGBA {
     };
 }
 
+function orderPoints(points: Point[]): Point[] {
+    let xTotal: number = 0
+    let yTotal: number = 0
+
+    for (const point of points) {
+        xTotal += point.x
+        yTotal += point.y
+    }
+
+    const centroid: Point = {
+        x: xTotal / points.length,
+        y: yTotal / points.length
+    }
+
+    points.sort((a, b) => {
+        const ay = a.y - centroid.y
+        const ax = a.x - centroid.x
+
+        const by = b.y - centroid.y
+        const bx = b.x - centroid.x
+
+        return Math.atan2(ay, ax) - Math.atan2(by, bx)
+    })
+
+    return points
+}
+
+function shoelaceArea(points: Point[]): number {
+    points = orderPoints(points)
+
+    let sum0: number = 0
+    let sum1: number = 0
+
+    for (let i: number = 0; i < points.length; i++) {
+        sum0 += points[i]!.x * points[(i+1)%points.length]!.y
+        sum1 += points[i]!.y * points[(i+1)%points.length]!.x
+    }
+
+    return Math.abs(sum0 - sum1) / 2
+}
+
 export function normalizeImage(image: ImageData, circlePositions: QuadCircles): ImageData {
     // x and y of items in circle positions are already normalized between 0 and 1
 
