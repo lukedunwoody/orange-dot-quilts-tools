@@ -1,7 +1,7 @@
-import type { Circle, QuadCircles } from "./corners"
+// Probably some of the most dense math I have ever written
+// Sorry in advance to future self or others for the naming
 
-const OUTPUT_W: number = 1000
-const OUTPUT_H: number = 1000
+import type { Circle, QuadCircles } from "./corners"
 
 interface Point {
     x: number,
@@ -15,17 +15,33 @@ interface RGBA {
     a: number
 }
 
+interface ColorWeight {
+    color: RGBA,
+    weight: number
+}
+
 function getPixelColor(imageData: ImageData, x: number, y: number): RGBA {
     if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
-        throw new Error("Coordinates are out of bounds");
+        throw new Error("Coordinates are out of bounds")
     }
-    const index = (y * imageData.width + x) * 4;
+    const index = (y * imageData.width + x) * 4
     return {
         r: imageData.data[index]!,     // Red (0-255)
         g: imageData.data[index + 1]!, // Green (0-255)
         b: imageData.data[index + 2]!, // Blue (0-255)
         a: imageData.data[index + 3]!  // Alpha/Opacity (0-255)
-    };
+    }
+}
+
+function setPixelColor(imageData: ImageData, x: number, y: number, color: RGBA): void {
+    if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
+        throw new Error("Coordinates are out of bounds")
+    }
+    const index = (y * imageData.width + x) * 4
+    imageData.data[index] = Math.round(color.r)
+    imageData.data[index + 1] = Math.round(color.g)
+    imageData.data[index + 2] = Math.round(color.b)
+    imageData.data[index + 3] = Math.round(color.a)
 }
 
 function orderPoints(points: Point[]): Point[] {
@@ -69,13 +85,39 @@ function shoelaceArea(points: Point[]): number {
     return Math.abs(sum0 - sum1) / 2
 }
 
-export function normalizeImage(image: ImageData, circlePositions: QuadCircles): ImageData {
+function averageColorsByWeight(colorWeights: ColorWeight[]): RGBA {
+    let rt = 0
+    let gt = 0
+    let bt = 0
+    let at = 0
+    let wt = 0
+
+    for (const cw of colorWeights) {
+        rt += cw.color.r * cw.weight
+        gt += cw.color.g * cw.weight
+        bt += cw.color.b * cw.weight
+        at += cw.color.a * cw.weight
+
+        wt += cw.weight
+    }
+
+    const averagedColor: RGBA = {
+        r: rt / wt,
+        g: gt / wt,
+        b: bt / wt,
+        a: at / wt
+    }
+
+    return averagedColor
+}
+
+export function normalizeImage(image: ImageData, circlePositions: QuadCircles, outputW: number = 1000, outputH: number = 1000): ImageData {
     // x and y of items in circle positions are already normalized between 0 and 1
 
     let inputImageW: number = image.width
     let inputImageH: number = image.height
 
-    let returnImage: ImageData = new ImageData(OUTPUT_W, OUTPUT_H)
+    let returnImage: ImageData = new ImageData(outputW, outputH)
 
     // Rises and runs for original 4 lines
     let rises: number[] = []
@@ -101,20 +143,20 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles): 
     let run0  = s0.x - n0.x
     let rise0 = s0.y - n0.y
 
-    for (let i: number = 1; i < OUTPUT_W; i++) {
+    for (let i: number = 1; i < outputW; i++) {
         // Move 1 pixel to the right on the output image
         const n1: Point = {
-            x: circlePositions[0]!.x + (runs[0]!  * (i / OUTPUT_W)),
-            y: circlePositions[0]!.y + (rises[0]! * (i / OUTPUT_W))
+            x: circlePositions[0]!.x + (runs[0]!  * (i / outputW)),
+            y: circlePositions[0]!.y + (rises[0]! * (i / outputW))
         }
         const s1: Point = {
-            x: circlePositions[2]!.x + (runs[2]!  * ((OUTPUT_W - i) / OUTPUT_W)),
-            y: circlePositions[2]!.y + (rises[2]! * ((OUTPUT_W - i) / OUTPUT_W))
+            x: circlePositions[2]!.x + (runs[2]!  * ((outputW - i) / outputW)),
+            y: circlePositions[2]!.y + (rises[2]! * ((outputW - i) / outputW))
         }
         const run1  = s1.x - n1.x
         const rise1 = s1.y - n1.y
 
-        // n0, s0, n1, s1 make a box that is 1/OUTPUT_W wide (0-1)
+        // n0, s0, n1, s1 make a box that is 1/outputW wide (0-1)
         // We need to iterate through each row of this column to make
         // a grid for each output pixel mapped to the original image
 
@@ -129,15 +171,15 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles): 
             y: n1.y
         }
 
-        for (let j: number = 1; j < OUTPUT_H; j++) {
+        for (let j: number = 1; j < outputH; j++) {
             // These are the bottom points of each individual pixel grid
             percentGridPoints[2] = {
-                x: n1.x + (run1 * (j / OUTPUT_H)),
-                y: n1.y + (rise1 * (j / OUTPUT_H))
+                x: n1.x + (run1 * (j / outputH)),
+                y: n1.y + (rise1 * (j / outputH))
             }
             percentGridPoints[3] = {
-                x: n0.x + (run0 * (j / OUTPUT_H)),
-                y: n0.y + (rise0 * (j / OUTPUT_H))
+                x: n0.x + (run0 * (j / outputH)),
+                y: n0.y + (rise0 * (j / outputH))
             }
 
             // Step 1: Map percentages to original image pixels
@@ -166,7 +208,7 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles): 
             // - Finding any intercepts between input and output lines
             // Then use shoelace formula to find area inside
 
-            let pxInsideVector: [[RGBA, number]] = [[{r: 0, g: 0, b: 0, a: 0}, 0]]
+            let pxInsideVector: ColorWeight[] = []
 
             for (let ii: number = 0; ii < pxInsideW; ii++) {
                 for (let jj: number = 0; jj < pxInsideH; jj++) {
@@ -275,12 +317,18 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles): 
                         }
                     }
 
-                    pxInsideVector.push([getPixelColor(image, wMostEdge+ii, nMostEdge+jj), shoelaceArea(points)])
+                    pxInsideVector.push({
+                        color: getPixelColor(image, wMostEdge + ii, nMostEdge + jj),
+                        weight: shoelaceArea(points)
+                    })
                 }
             }
 
-            // Step 4: Average out the colors using hslX
+            // Step 4: Average out the colors
+            const averageColor: RGBA = averageColorsByWeight(pxInsideVector)
+
             // Step 5: Write weighed color to (i, j) in return image
+            setPixelColor(returnImage, i, j, averageColor)
 
             percentGridPoints[0] = percentGridPoints[3]!
             percentGridPoints[1] = percentGridPoints[2]!
