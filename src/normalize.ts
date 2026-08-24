@@ -44,6 +44,27 @@ function setPixelColor(imageData: ImageData, x: number, y: number, color: RGBA):
     imageData.data[index + 3] = Math.round(color.a)
 }
 
+// DISCLAIMER: The following function was made by an LLM
+// It is a simple function that determines if a point is acutally inside a quad
+// I'm just tired man
+function isPointInsideConvexQuad(point: Point, quad: Point[]): boolean {
+    let hasPositiveCrossProduct = false
+    let hasNegativeCrossProduct = false
+
+    for (let i: number = 0; i < 4; i++) {
+        const edgeStart = quad[i]!
+        const edgeEnd = quad[(i + 1) % 4]!
+        const crossProduct =
+            (edgeEnd.x - edgeStart.x) * (point.y - edgeStart.y) -
+            (edgeEnd.y - edgeStart.y) * (point.x - edgeStart.x)
+
+        hasPositiveCrossProduct ||= crossProduct > 0
+        hasNegativeCrossProduct ||= crossProduct < 0
+    }
+
+    return !(hasPositiveCrossProduct && hasNegativeCrossProduct)
+}
+
 function orderPoints(points: Point[]): Point[] {
     let xTotal: number = 0
     let yTotal: number = 0
@@ -72,6 +93,10 @@ function orderPoints(points: Point[]): Point[] {
 }
 
 function shoelaceArea(points: Point[]): number {
+    if (points.length < 4) {
+        console.log("Too few points for proper area")
+    }
+
     points = orderPoints(points)
 
     let sum0: number = 0
@@ -86,11 +111,11 @@ function shoelaceArea(points: Point[]): number {
 }
 
 function averageColorsByWeight(colorWeights: ColorWeight[]): RGBA {
-    let rt = 0
-    let gt = 0
-    let bt = 0
-    let at = 0
-    let wt = 0
+    let rt: number = 0
+    let gt: number = 0
+    let bt: number = 0
+    let at: number = 0
+    let wt: number = 0
 
     for (const cw of colorWeights) {
         rt += cw.color.r * cw.weight
@@ -143,7 +168,7 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles, o
     let run0  = s0.x - n0.x
     let rise0 = s0.y - n0.y
 
-    for (let i: number = 1; i < outputW; i++) {
+    for (let i: number = 0; i < outputW; i++) {
         // Move 1 pixel to the right on the output image
         const n1: Point = {
             x: circlePositions[0]!.x + (runs[0]!  * (i / outputW)),
@@ -171,7 +196,7 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles, o
             y: n1.y
         }
 
-        for (let j: number = 1; j < outputH; j++) {
+        for (let j: number = 0; j < outputH; j++) {
             // These are the bottom points of each individual pixel grid
             percentGridPoints[2] = {
                 x: n1.x + (run1 * (j / outputH)),
@@ -210,8 +235,8 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles, o
 
             let pxInsideVector: ColorWeight[] = []
 
-            for (let ii: number = 0; ii < pxInsideW; ii++) {
-                for (let jj: number = 0; jj < pxInsideH; jj++) {
+            for (let ii: number = wMostEdge; ii <= eMostEdge; ii++) {
+                for (let jj: number = nMostEdge; jj <= sMostEdge; jj++) {
 
                     let points: Point[] = []
 
@@ -222,30 +247,31 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles, o
                         ii + 1,
                         jj + 1
                     ]
+                    const inputPixelCorners: Point[] = [
+                        { x: ii,     y: jj },
+                        { x: ii + 1, y: jj },
+                        { x: ii + 1, y: jj + 1 },
+                        { x: ii,     y: jj + 1 }
+                    ]
 
                     // Loop through each output corner
                     for (let kk: number = 0; kk < 4; kk++) {
                         const corner0: Point = inputGridPoints[kk]!
 
-                        // Check if point is inside circle by
-                        // finding the 2 comparison input edges and
-                        // weather they would be higher or lower than the point
-                        const riseEdge: number = inputEdges[kk]!
-                        const runEdge: number  = inputEdges[kk+1]!
+                        const cornerInsideInputPixel =
+                            corner0.x >= ii &&
+                            corner0.x <= ii + 1 &&
+                            corner0.y >= jj &&
+                            corner0.y <= jj + 1
 
-                        const runAxisX: boolean = kk % 2 === 0
-
-                        const riseEdgeLowerMeansInside: boolean = kk === 0 || kk === 3
-                        const runEdgeLowerMeansInside: boolean  = kk === 0 || kk === 1
-
-                        const riseComparison: number = runAxisX ? corner0.y : corner0.x
-                        const runComparison: number  = runAxisX ? corner0.x : corner0.y
-
-                        const riseEdgeInside: boolean = riseEdgeLowerMeansInside ? riseEdge < riseComparison : riseEdge > riseComparison
-                        const runEdgeInside: boolean = runEdgeLowerMeansInside ? runEdge < runComparison : runEdge > runComparison
-
-                        if (riseEdgeInside && runEdgeInside) {
+                        if (cornerInsideInputPixel) {
                             points.push(corner0)
+                        }
+
+                        const inputPixelCorner = inputPixelCorners[kk]!
+
+                        if (isPointInsideConvexQuad(inputPixelCorner, inputGridPoints)) {
+                            points.push(inputPixelCorner)
                         }
 
                         // Find any intercepts between this point and the next
@@ -254,71 +280,100 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles, o
                         // Add cords of any intercepts to points array
                         const corner1: Point = inputGridPoints[(kk+1)%4]!
 
-                        const swapAxes = kk % 2 !== 0
+                        // A slanted output edge can cross either a horizontal or a
+                        // vertical input-pixel boundary. Run the same calculation in
+                        // both coordinate orientations so both boundary pairs are tested.
 
-                        const localCorner0: Point = swapAxes
-                            ? { x: corner0.y, y: corner0.x }
-                            : corner0
+                        // DISCLAIMER: line 270 and 289 were written by an LLM but heres how they work
+                        // Before, we determined a swapAxes value but failed to account for the fact
+                        // that the input edge we needed to compare the line to also changed.
+                        // To ensure we don't check all 4 input edges against an axis that might not be theirs,
+                        // we determining isLocalYBoundary to see weather the intercept comparison is valid.
+                        for (const swapAxes of [false, true]) { // AI
+                            const localCorner0: Point = swapAxes
+                                ? { x: corner0.y, y: corner0.x }
+                                : corner0
 
-                        const localCorner1: Point = swapAxes
-                            ? { x: corner1.y, y: corner1.x }
-                            : corner1
+                            const localCorner1: Point = swapAxes
+                                ? { x: corner1.y, y: corner1.x }
+                                : corner1
 
-                        const addLocalPoint = (point: Point) => {
-                            points.push(
-                                swapAxes
-                                    ? { x: point.y, y: point.x }
-                                    : { x: point.x, y: point.y }
-                            )
-                        }
+                            const addLocalPoint = (point: Point) => {
+                                points.push(
+                                    swapAxes
+                                        ? { x: point.y, y: point.x }
+                                        : { x: point.x, y: point.y }
+                                )
+                            }
 
-                        for (let ll: number = 0; ll < 4; ll++) {
-                            const interceptEdge: number = inputEdges[ll]!
+                            for (let ll: number = 0; ll < 4; ll++) {
+                                const isLocalYBoundary = swapAxes ? ll % 2 === 0 : ll % 2 !== 0 // AI
 
-                            const eLocalEdge: number = inputEdges[(ll+1)%4]! // jj
-                            const wLocalEdge: number = inputEdges[(ll+3)%4]! // jj+1
-
-                            // Intercept edge is on x-axis
-                            if (localCorner0.x === localCorner1.x) {
-                                if (localCorner0.x >= eLocalEdge && localCorner0.x <= wLocalEdge) {
-                                    addLocalPoint({
-                                        x: localCorner0.x,
-                                        y: interceptEdge
-                                    })
+                                if (!isLocalYBoundary) {
+                                    continue
                                 }
-                            } else if (localCorner0.y === localCorner1.y && localCorner1.y === interceptEdge) {
-                                // Both points on interceptEdge
 
-                                if (localCorner0.x < wLocalEdge) {
-                                    addLocalPoint({
-                                        x: (localCorner0.x > eLocalEdge) ? localCorner0.x : eLocalEdge,
-                                        y: interceptEdge
-                                    })
+                                const interceptEdge: number = inputEdges[ll]!
+
+                                const minLocalEdge: number = inputEdges[(ll+1)%2]! // jj
+                                const maxLocalEdge: number = inputEdges[((ll+1)%2)+2]! // jj+1
+
+                                // Intercept edge is on x-axis
+                                if (localCorner0.x === localCorner1.x) {
+                                    const segmentMinY = Math.min(localCorner0.y, localCorner1.y)
+                                    const segmentMaxY = Math.max(localCorner0.y, localCorner1.y)
+
+                                    if (
+                                        localCorner0.x >= minLocalEdge &&
+                                        localCorner0.x <= maxLocalEdge &&
+                                        interceptEdge >= segmentMinY &&
+                                        interceptEdge <= segmentMaxY
+                                    ) {
+                                        addLocalPoint({
+                                            x: localCorner0.x,
+                                            y: interceptEdge
+                                        })
+                                    }
+                                } else if (localCorner0.y === localCorner1.y && localCorner1.y === interceptEdge) {
+                                    // Both points on interceptEdge
+
+                                    const segmentMinX = Math.min(localCorner0.x, localCorner1.x)
+                                    const segmentMaxX = Math.max(localCorner0.x, localCorner1.x)
+                                    const overlapMinX = Math.max(segmentMinX, minLocalEdge)
+                                    const overlapMaxX = Math.min(segmentMaxX, maxLocalEdge)
+
+                                    if (overlapMinX <= overlapMaxX) {
+                                        addLocalPoint({
+                                            x: overlapMinX,
+                                            y: interceptEdge
+                                        })
+                                        addLocalPoint({
+                                            x: overlapMaxX,
+                                            y: interceptEdge
+                                        })
+                                    }
+                                } else if ((localCorner0.y >= interceptEdge && localCorner1.y <= interceptEdge) ||
+                                    (localCorner0.y <= interceptEdge && localCorner1.y >= interceptEdge))
+                                {
+                                    const m = (localCorner1.y - localCorner0.y) / (localCorner1.x - localCorner0.x)
+                                    const b = localCorner0.y
+
+                                    const relativeInterceptX = (interceptEdge - b) / m
+                                    const interceptX = localCorner0.x + relativeInterceptX
+
+                                    if (interceptX >= minLocalEdge && interceptX <= maxLocalEdge) {
+                                        addLocalPoint({
+                                            x: interceptX,
+                                            y: interceptEdge
+                                        })
+                                    }
                                 }
-                                if (localCorner1.x > eLocalEdge) {
-                                    addLocalPoint({
-                                        x: (localCorner1.x < wLocalEdge) ? localCorner1.x : wLocalEdge,
-                                        y: interceptEdge
-                                    })
-                                }
-                            } else if ((localCorner0.y >= interceptEdge && localCorner1.y <= interceptEdge) ||
-                                (localCorner0.y <= interceptEdge && localCorner1.y >= interceptEdge))
-                            {
-                                const m = (localCorner1.y - localCorner0.y) / (localCorner1.x - localCorner0.x)
-                                const b = localCorner0.y
-
-                                const relativeInterceptX = (interceptEdge - b) / m
-
-                                addLocalPoint({
-                                    x: localCorner0.x + relativeInterceptX,
-                                    y: interceptEdge
-                                })
                             }
                         }
                     }
 
                     pxInsideVector.push({
-                        color: getPixelColor(image, wMostEdge + ii, nMostEdge + jj),
+                        color: getPixelColor(image, ii, jj),
                         weight: shoelaceArea(points)
                     })
                 }

@@ -1,5 +1,7 @@
-// TODO: Only make circles appear after uploadFinishButton is pressed
-// Log circle positions as percent of canvas
+// TODO:
+// Only make circles appear after uploadFinishButton is pressed
+
+import { normalizeImage } from "./normalize.js"
 
 // Constants
 const CANVAS_WIDTH: number  = 800
@@ -22,13 +24,23 @@ canvas.height = CANVAS_HEIGHT
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
 const cornerFinishButton = document.getElementById("corner-finish-button") as HTMLButtonElement
 
-interface Circle {
+// Step 3 Elements
+const NORMALIZED_CANVAS_W = 1000
+const NORMALIZED_CANVAS_H = 1000
+const normalizedImageTestCanvas = document.getElementById("normalized-image-test-canvas") as HTMLCanvasElement
+normalizedImageTestCanvas.width = NORMALIZED_CANVAS_W
+normalizedImageTestCanvas.height = NORMALIZED_CANVAS_H
+const normalizedImageTestTX = normalizedImageTestCanvas.getContext("2d") as CanvasRenderingContext2D
+
+export interface Circle {
     x: number
     y: number
     state: string
 }
 
-let circle_positions: [Circle, Circle, Circle, Circle] = [
+export type QuadCircles = [Circle, Circle, Circle, Circle]
+
+let circlePositions: QuadCircles = [
     {
         x: CANVAS_WIDTH * CIRCLE_OFFSET,
         y: CANVAS_HEIGHT * CIRCLE_OFFSET,
@@ -59,7 +71,7 @@ const drawCircle = (circle: Circle): void => {
 }
 
 const drawCircles = (): void => {
-    for (const circle of circle_positions) {
+    for (const circle of circlePositions) {
         drawCircle(circle)
     }
 }
@@ -75,8 +87,8 @@ const drawLine = (circle0: Circle, circle1: Circle): void => {
 
 const drawLines = (): void => {
     for (let i: number = 0; i < 4; i++) {
-        let circle0: Circle = circle_positions[i]!
-        let circle1: Circle = circle_positions[(i+1)%4]!
+        let circle0: Circle = circlePositions[i]!
+        let circle1: Circle = circlePositions[(i+1)%4]!
         drawLine(circle0, circle1)
     }
 }
@@ -90,7 +102,7 @@ let mouseDiffY: number = 0
 let mouseDown: boolean = false
 
 function updateCircles(): void {
-    for (const circle of circle_positions) {
+    for (const circle of circlePositions) {
         if (
             Math.abs(mouseX-circle.x) < CIRCLE_HITBOX_RADIUS
             && Math.abs(mouseY-circle.y) < CIRCLE_HITBOX_RADIUS
@@ -130,11 +142,11 @@ canvas.addEventListener("pointerup", (e: PointerEvent) => {
 const update = (): void => {
     if (uploadedImage) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(uploadedImage, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+        ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height)
         updateMouseDiff()
         updateCircles()
 
-        for (const circle of circle_positions) {
+        for (const circle of circlePositions) {
             if (circle.state == "active") {
                 circle.x -= mouseDiffX
                 circle.y -= mouseDiffY
@@ -148,16 +160,47 @@ const update = (): void => {
     requestAnimationFrame(update)
 }
 
-cornerFinishButton.onclick = () => {
-    let ne_circle: Circle = circle_positions[0]!
-    let nw_circle: Circle = circle_positions[1]!
-    let sw_circle: Circle = circle_positions[2]!
-    let se_circle: Circle = circle_positions[3]!
+function imageToImageData(image: HTMLImageElement): ImageData {
+    const lcanvas = document.createElement("canvas")
+    const lctx = lcanvas.getContext("2d")!
 
-    console.log(`NE Circle: x = ${ne_circle.x}, y = ${ne_circle.y}`)
-    console.log(`NW Circle: x = ${nw_circle.x}, y = ${nw_circle.y}`)
-    console.log(`SW Circle: x = ${sw_circle.x}, y = ${sw_circle.y}`)
-    console.log(`SE Circle: x = ${se_circle.x}, y = ${se_circle.y}`)
+    lcanvas.width = image.naturalWidth
+    lcanvas.height = image.naturalHeight
+
+    lctx.drawImage(image, 0, 0)
+
+    return lctx.getImageData(
+        0,
+        0,
+        lcanvas.width,
+        lcanvas.height
+    )
+}
+
+cornerFinishButton.onclick = () => {
+    const nw_circle = circlePositions[0]!
+    const ne_circle = circlePositions[1]!
+    const se_circle = circlePositions[2]!
+    const sw_circle = circlePositions[3]!
+
+    console.log(`NE Circle: x = ${ne_circle.x / CANVAS_WIDTH}, y = ${ne_circle.y / CANVAS_HEIGHT}`)
+    console.log(`NW Circle: x = ${nw_circle.x / CANVAS_WIDTH}, y = ${nw_circle.y / CANVAS_HEIGHT}`)
+    console.log(`SW Circle: x = ${sw_circle.x / CANVAS_WIDTH}, y = ${sw_circle.y / CANVAS_HEIGHT}`)
+    console.log(`SE Circle: x = ${se_circle.x / CANVAS_WIDTH}, y = ${se_circle.y / CANVAS_HEIGHT}`)
+
+    const normalizedPositions = circlePositions.map(
+        ({ x: xp, y: yp, state: _ }) => ({
+            x: xp / CANVAS_WIDTH,
+            y: yp / CANVAS_HEIGHT,
+            state: "passive"
+        })) as QuadCircles
+
+    const imageData = imageToImageData(uploadedImage)
+    const normalizedImageData: ImageData = normalizeImage(imageData, normalizedPositions, NORMALIZED_CANVAS_W, NORMALIZED_CANVAS_H)
+
+    console.log("Placing normalized image!")
+
+    normalizedImageTestTX.putImageData(normalizedImageData, 0, 0)
 }
 
 update()
