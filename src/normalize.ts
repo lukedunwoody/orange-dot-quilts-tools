@@ -93,10 +93,6 @@ function orderPoints(points: Point[]): Point[] {
 }
 
 function shoelaceArea(points: Point[]): number {
-    if (points.length < 4) {
-        console.log("Too few points for proper area")
-    }
-
     points = orderPoints(points)
 
     let sum0: number = 0
@@ -171,12 +167,12 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles, o
     for (let i: number = 0; i < outputW; i++) {
         // Move 1 pixel to the right on the output image
         const n1: Point = {
-            x: circlePositions[0]!.x + (runs[0]!  * (i / outputW)),
-            y: circlePositions[0]!.y + (rises[0]! * (i / outputW))
+            x: circlePositions[0]!.x + (runs[0]!  * ((i + 1) / outputW)),
+            y: circlePositions[0]!.y + (rises[0]! * ((i + 1) / outputW))
         }
         const s1: Point = {
-            x: circlePositions[2]!.x + (runs[2]!  * ((outputW - i) / outputW)),
-            y: circlePositions[2]!.y + (rises[2]! * ((outputW - i) / outputW))
+            x: circlePositions[2]!.x + (runs[2]!  * ((outputW - i - 1) / outputW)),
+            y: circlePositions[2]!.y + (rises[2]! * ((outputW - i - 1) / outputW))
         }
         const run1  = s1.x - n1.x
         const rise1 = s1.y - n1.y
@@ -199,12 +195,12 @@ export function normalizeImage(image: ImageData, circlePositions: QuadCircles, o
         for (let j: number = 0; j < outputH; j++) {
             // These are the bottom points of each individual pixel grid
             percentGridPoints[2] = {
-                x: n1.x + (run1 * (j / outputH)),
-                y: n1.y + (rise1 * (j / outputH))
+                x: n1.x + (run1 * ((j + 1) / outputH)),
+                y: n1.y + (rise1 * ((j + 1) / outputH))
             }
             percentGridPoints[3] = {
-                x: n0.x + (run0 * (j / outputH)),
-                y: n0.y + (rise0 * (j / outputH))
+                x: n0.x + (run0 * ((j + 1) / outputH)),
+                y: n0.y + (rise0 * ((j + 1) / outputH))
             }
 
             // Step 1: Map percentages to original image pixels
