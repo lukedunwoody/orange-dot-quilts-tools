@@ -1,27 +1,55 @@
 <html>
     <body>
         <div>
-            <h1>Top Bar</h1>
+            <nav class="navbar">
+                <ui>
+                    <li><a href="/">All Tools</a></li>
+                    <li><a href="https://www.orangedotquilts.com/">OrangeDotQuilts</a></li>
+                </ui>
+            </nav>
+        </div>
+
+        <div>
+            <h1>Tool Title</h1>
         </div>
 
         <div>
             <h2>Step 1: Image Upload</h2>
+            <p>Choose the desired image and press the finish button when done.</p>
+
             <input id="input-image" type="file" accept="image/*" hidden>
-            <button id="upload-button">Upload image</button>
+            <button id="upload-select-button">Choose Image</button>
+
             <h3>Selected image:</h3>
-            <img id="uploaded-image" alt="Uploaded image" width="800">
-            <button id="upload-finish-button">Finished</button>
+            <img id="uploaded-image" alt="Uploaded image">
+            <button id="upload-finish-button">Finish</button>
         </div>
 
         <div>
-            <h2>Step 2: Align Corners</h2>
-            <canvas id="corner-align-canvas"></canvas>
-            <button id="corner-finish-button">Finished</button>
+            <h2>Step 2: Align Grid</h2>
+            <p>Pick the amount of rows and columns in the pattern and align the cicrcles with the corners of the quilt.</p>
+
+            <button id="decrease-x">-</button>
+            <output id="amt-x-grid" for="decrease-x increase-x">3</output>
+            <button id="increase-x">+</button>
+
+            <button id="decrease-y">-</button>
+            <output id="amt-y-grid" for="decrease-y increase-y">3</output>
+            <button id="increase-y">+</button>
+
+            <canvas id="align-canvas"></canvas>
+            <button id="align-finish-button">Finish</button>
         </div>
 
         <div>
-            <h2>Test: Normalized Image</h2>
-            <canvas id="normalized-image-test-canvas"></canvas>
+            <h2>Step 3: Results Preview</h2>
+            <p>Click any triangle to preview what it would look like as a square pattern!</p>
+
+            <canvas id="preview-canvas"></canvas>
+            <img id="preview-image" alt="Preview">
+            <button id="preview-download-button">Download</button>
+
+            <p>Upload a new image to restart.</p>
         </div>
 
         <script type="module" src="dist/app.js"></script>

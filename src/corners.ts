@@ -18,16 +18,16 @@ const uploadedImage = document.getElementById("uploaded-image") as HTMLImageElem
 const uploadFinishButton = document.getElementById("upload-finish-button") as HTMLButtonElement
 
 // Step 2 Elements
-const canvas = document.getElementById("corner-align-canvas") as HTMLCanvasElement
+const canvas = document.getElementById("align-canvas") as HTMLCanvasElement
 canvas.width = CANVAS_WIDTH
 canvas.height = CANVAS_HEIGHT
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
-const cornerFinishButton = document.getElementById("corner-finish-button") as HTMLButtonElement
+const cornerFinishButton = document.getElementById("align-finish-button") as HTMLButtonElement
 
 // Step 3 Elements
 const NORMALIZED_CANVAS_W = 1000
 const NORMALIZED_CANVAS_H = 1000
-const normalizedImageTestCanvas = document.getElementById("normalized-image-test-canvas") as HTMLCanvasElement
+const normalizedImageTestCanvas = document.getElementById("preview-canvas") as HTMLCanvasElement
 normalizedImageTestCanvas.width = NORMALIZED_CANVAS_W
 normalizedImageTestCanvas.height = NORMALIZED_CANVAS_H
 const normalizedImageTestTX = normalizedImageTestCanvas.getContext("2d") as CanvasRenderingContext2D
