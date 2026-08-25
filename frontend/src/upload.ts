@@ -6,7 +6,7 @@ const uploadStatus = document.getElementById("upload-status") as HTMLParagraphEl
 const uploadSelectButton = document.getElementById("upload-select-button") as HTMLButtonElement
 const uploadFinishButton = document.getElementById("upload-finish-button") as HTMLButtonElement
 
-export function getImageUpload(): Promise<void> {
+export function getImageUpload(): Promise<string> {
     return new Promise((resolve) => {
         uploadSelectButton.onclick = () => {
             inputImage.click()
@@ -21,11 +21,12 @@ export function getImageUpload(): Promise<void> {
         }
 
         uploadFinishButton.onclick = () => {
+            const imageUrl = uploadedImage.getAttribute("src") as string
+
             if (uploadedImage.getAttribute("src")) {
                 uploadStatus.textContent = ""
                 uploadStatus.className = "empty"
-                resolve()
-                return
+                resolve(imageUrl)
             } else {
                 uploadStatus.textContent = "Please upload an image before continuing."
                 uploadStatus.className = "failed"
