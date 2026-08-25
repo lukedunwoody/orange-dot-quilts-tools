@@ -1,3 +1,8 @@
+<!--
+Change finish to continue
+move h2 outside divs to hide content
+-->
+
 <html>
     <body>
         <div>
@@ -22,6 +27,7 @@
 
             <h3>Selected image:</h3>
             <img id="uploaded-image" alt="Uploaded image">
+            <p id="upload-status" data-status="empty"></p>
             <button id="upload-finish-button">Finish</button>
         </div>
 
@@ -52,8 +58,7 @@
             <p>Upload a new image to restart.</p>
         </div>
 
-        <script type="module" src="dist/app.js"></script>
-        <script type="module" src="dist/corners.js"></script>
-        <script type="module" src="dist/normalize.js"></script>
+        <script type="module" src="dist/main.js"></script>
+        <script type="module" src="dist/upload.js"></script>
     </body>
 </html>
