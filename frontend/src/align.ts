@@ -1,6 +1,9 @@
 // Step Two Helper
 
+// TODO remove event listeners after function returns
 
+import { urlToImage } from "./imageUtils.js"
+import type { Point } from "./types.js"
 
 // UI Apparance Config (percent of width)
 const CIRCLE_START_OFFSET: number   = 0.1
@@ -13,8 +16,8 @@ const CIRCLE_HOVER_COLOR: string    = "#888888BB"
 const CIRCLE_PASSIVE_COLOR: string  = "#00000088"
 const CIRCLE_PRECISE_COLOR: string  = "#FF0000DD"
 
-const GRID_OUTLINE_WEIGHT: number   = 0.03
-const GRID_INLINE_WEIGHT: number    = 0.02
+const GRID_OUTLINE_WEIGHT: number   = 0.01
+const GRID_INLINE_WEIGHT: number    = 0.005
 const GRID_OUTLINE_COLOR: string    = "#0088FFBB"
 const GRID_INLINE_COLOR: string     = "#00FF8888"
 
@@ -25,7 +28,7 @@ const yDecreaseButton = document.getElementById("decrease-x") as HTMLButtonEleme
 const yIncreaseButton = document.getElementById("increase-x") as HTMLButtonElement
 
 const xGridAmtOutput = document.getElementById("amt-x-grid") as HTMLOutputElement
-const yGtidAmtOutput = document.getElementById("amt-y-grid") as HTMLOutputElement
+const yGridAmtOutput = document.getElementById("amt-y-grid") as HTMLOutputElement
 
 const canvas = document.getElementById("align-canvas") as HTMLCanvasElement
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
@@ -33,23 +36,28 @@ const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
 const alignFinishButton = document.getElementById("align-finish-button") as HTMLButtonElement
 
 // Interfaces
-interface Point {
-    x: number,
-    y: number
-}
-
 interface Circle {
     location: Point,
     state: string
 }
 
 // Functions
-function drawCircle(circle: Circle): void {
+function clamp(val: number, min: number, max: number): number {
+    return Math.min(Math.max(val, min), max)
+}
+
+function drawCircle(circle: Circle, radius: number, preciseRadius: number): void {
     ctx.beginPath()
-    ctx.arc(circle.location.x, circle.location.y, CIRCLE_DRAW_RADIUS, 0, Math.PI * 2)
+    ctx.arc(circle.location.x, circle.location.y, radius, 0, Math.PI * 2)
     ctx.fillStyle = circle.state === "active" ? CIRCLE_ACTIVE_COLOR :
         circle.state === "hover" ? CIRCLE_HOVER_COLOR :
         CIRCLE_PASSIVE_COLOR
+    ctx.fill()
+    ctx.closePath()
+
+    ctx.beginPath()
+    ctx.arc(circle.location.x, circle.location.y, preciseRadius, 0, Math.PI * 2)
+    ctx.fillStyle = CIRCLE_PRECISE_COLOR
     ctx.fill()
     ctx.closePath()
 }
@@ -63,13 +71,13 @@ function drawLine(point0: Point, point1: Point, width: number, color: string): v
     ctx.stroke()
 }
 
-function drawCircles(circlePositions: Circle[]): void {
+function drawCircles(circlePositions: Circle[], imageW: number): void {
     for (const circle of circlePositions) {
-        drawCircle(circle)
+        drawCircle(circle, CIRCLE_DRAW_RADIUS * imageW, CIRCLE_PRECISE_RADIUS * imageW)
     }
 }
 
-function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number) {
+function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number, imageW: number): void {
     // Inline
     let runs: number[] = []
     let rises: number[] = []
@@ -91,7 +99,7 @@ function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number)
         rises[i] = point1.y - point0.y
     }
 
-    for (let i: number = 0; i < xGridAmt; i++) {
+    for (let i: number = 0; i < xGridAmt - 1; i++) {
         const circle0 = circlePositions[0]!
         const circle1 = circlePositions[2]!
 
@@ -105,18 +113,18 @@ function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number)
         }
 
         const point0: Point = {
-            x: start0.x + runs[0]!  * (i+1 / xGridAmt+1),
-            y: start0.y + rises[0]! * (i+1 / xGridAmt+1)
+            x: start0.x + runs[0]!  * ((i+1) / xGridAmt),
+            y: start0.y + rises[0]! * ((i+1) / xGridAmt)
         }
         const point1: Point = {
-            x: start1.x + runs[0]!  * (xGridAmt-i / xGridAmt+1),
-            y: start1.y + rises[0]! * (xGridAmt-i / xGridAmt+1)
+            x: start1.x + runs[2]!  * ((xGridAmt-(i+1)) / xGridAmt),
+            y: start1.y + rises[2]! * ((xGridAmt-(i+1)) / xGridAmt)
         }
 
-        drawLine(point0, point1, GRID_INLINE_WEIGHT, GRID_INLINE_COLOR)
+        drawLine(point0, point1, GRID_INLINE_WEIGHT * imageW, GRID_INLINE_COLOR)
     }
 
-    for (let i: number = 0; i < yGridAmt; i++) {
+    for (let i: number = 0; i < yGridAmt - 1; i++) {
         const circle0 = circlePositions[1]!
         const circle1 = circlePositions[3]!
 
@@ -130,15 +138,15 @@ function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number)
         }
 
         const point0: Point = {
-            x: start0.x + runs[0]!  * (i+1 / xGridAmt+1),
-            y: start0.y + rises[0]! * (i+1 / xGridAmt+1)
+            x: start0.x + runs[1]!  * ((i+1) / yGridAmt),
+            y: start0.y + rises[1]! * ((i+1) / yGridAmt)
         }
         const point1: Point = {
-            x: start1.x + runs[0]!  * (xGridAmt-i / xGridAmt+1),
-            y: start1.y + rises[0]! * (xGridAmt-i / xGridAmt+1)
+            x: start1.x + runs[3]!  * ((yGridAmt-(i+1)) / yGridAmt),
+            y: start1.y + rises[3]! * ((yGridAmt-(i+1)) / yGridAmt)
         }
 
-        drawLine(point0, point1, GRID_INLINE_WEIGHT, GRID_INLINE_COLOR)
+        drawLine(point0, point1, GRID_INLINE_WEIGHT * imageW, GRID_INLINE_COLOR)
     }
 
     // Outline
@@ -155,15 +163,30 @@ function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number)
             y: circle1.location.y
         }
 
-        drawLine(point0, point1, GRID_OUTLINE_WEIGHT, GRID_OUTLINE_COLOR)
+        drawLine(point0, point1, GRID_OUTLINE_WEIGHT * imageW, GRID_OUTLINE_COLOR)
     }
 }
 
 // Main
-export function getAlignedCorners(imageUrl: string): Promise<ImageData> {
-    return new Promise((resolve) => {
-        const imageW: number = 0 // TODO
-        const imageH: number = 0 // TODO
+export function getAlignedCorners(imageUrl: string): Promise<Point[]> {
+    return new Promise(async (resolve) => {
+        // Data
+        const image = await urlToImage(imageUrl)
+
+        const imageW: number = image.naturalWidth
+        const imageH: number = image.naturalHeight
+
+        canvas.width = imageW
+        canvas.height = imageH
+
+        // Vars
+        let mouseX: number = 0
+        let mouseY: number = 0
+        let mouseLastX: number = 0
+        let mouseLastY: number = 0
+        let mouseDiffX: number = 0
+        let mouseDiffY: number = 0
+        let mouseDown: boolean = false
 
         let circlePositions: Circle[] = [
             {
@@ -192,5 +215,110 @@ export function getAlignedCorners(imageUrl: string): Promise<ImageData> {
                 state: "passive"
             }
         ]
-    }
+
+        // Grid Buttons Functionality
+        let xGridAmt = 3
+        let yGridAmt = 3
+
+        xGridAmtOutput.value = xGridAmt.toString()
+        yGridAmtOutput.value = yGridAmt.toString()
+
+        xDecreaseButton.addEventListener("click", () => {
+            xGridAmt = clamp(xGridAmt - 1, 2, 5)
+            xGridAmtOutput.value = xGridAmt.toString()
+        })
+
+        xIncreaseButton.addEventListener("click", () => {
+            xGridAmt = clamp(xGridAmt + 1, 2, 5)
+            xGridAmtOutput.value = xGridAmt.toString()
+        })
+
+        yDecreaseButton.addEventListener("click", () => {
+            yGridAmt = clamp(xGridAmt - 1, 2, 5)
+            yGridAmtOutput.value = yGridAmt.toString()
+        })
+
+        yIncreaseButton.addEventListener("click", () => {
+            yGridAmt = clamp(xGridAmt + 1, 2, 5)
+            yGridAmtOutput.value = yGridAmt.toString()
+        })
+
+        // Functions
+        function updateMouseDiff(): void {
+            mouseDiffX = mouseLastX - mouseX
+            mouseDiffY = mouseLastY - mouseY
+
+            mouseLastX = mouseX
+            mouseLastY = mouseY
+        }
+
+        function updateCircles(): void {
+            const hitboxRadius = CIRCLE_HITBOX_RADIUS * imageW
+
+            for (const circle of circlePositions) {
+                const isUnderPointer = (
+                    Math.abs(mouseX - circle.location.x) < CIRCLE_HITBOX_RADIUS * imageW
+                    && Math.abs(mouseY - circle.location.y) < CIRCLE_HITBOX_RADIUS * imageW
+                )
+
+                if (circle.state === "active" && mouseDown) {
+                    continue
+                }
+
+                if (isUnderPointer && !mouseDown) {
+                    circle.state = "hover"
+                } else if (isUnderPointer && mouseDown && circle.state === "hover") {
+                    circle.state = "active"
+                } else {
+                    circle.state = "passive"
+                }
+            }
+        }
+
+        const update = (): void => {
+            ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
+            ctx.drawImage(image, 0, 0)
+            updateMouseDiff()
+            updateCircles()
+
+            for (const circle of circlePositions) {
+                if (circle.state === "active") {
+                    circle.location.x -= mouseDiffX
+                    circle.location.y -= mouseDiffY
+                }
+            }
+
+            drawGrid(circlePositions, xGridAmt, yGridAmt, imageW)
+            drawCircles(circlePositions, imageW)
+
+            requestAnimationFrame(update)
+        }
+
+        // Canvas Connections
+        canvas.addEventListener("pointermove", (e: PointerEvent) => {
+            mouseX = e.offsetX
+            mouseY = e.offsetY
+        })
+
+        canvas.addEventListener("pointerdown", (e: PointerEvent) => {
+            mouseDown = true
+        })
+
+        canvas.addEventListener("pointerup", (e: PointerEvent) => {
+            mouseDown  = false
+        })
+
+        // Finish Button
+        alignFinishButton.addEventListener("click", () => {
+            resolve(
+                circlePositions.map(circle => ({
+                    x: circle.location.x / imageW,
+                    y: circle.location.y / imageH
+                }))
+            )
+        })
+
+        // Entry Point
+        update()
+    })
 }
