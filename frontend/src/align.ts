@@ -24,8 +24,8 @@ const GRID_INLINE_COLOR: string     = "#00FF8888"
 // Elements
 const xDecreaseButton = document.getElementById("decrease-x") as HTMLButtonElement
 const xIncreaseButton = document.getElementById("increase-x") as HTMLButtonElement
-const yDecreaseButton = document.getElementById("decrease-x") as HTMLButtonElement
-const yIncreaseButton = document.getElementById("increase-x") as HTMLButtonElement
+const yDecreaseButton = document.getElementById("decrease-y") as HTMLButtonElement
+const yIncreaseButton = document.getElementById("increase-y") as HTMLButtonElement
 
 const xGridAmtOutput = document.getElementById("amt-x-grid") as HTMLOutputElement
 const yGridAmtOutput = document.getElementById("amt-y-grid") as HTMLOutputElement
@@ -41,7 +41,55 @@ interface Circle {
     state: string
 }
 
-// Functions
+// Listener Functions
+let xGridAmt = 3
+let yGridAmt = 3
+
+xGridAmtOutput.value = xGridAmt.toString()
+yGridAmtOutput.value = yGridAmt.toString()
+
+function xDecreasePress(): void {
+    xGridAmt = clamp(xGridAmt - 1, 2, 5)
+    xGridAmtOutput.value = xGridAmt.toString()
+}
+
+function xIncreasePress(): void {
+    xGridAmt = clamp(xGridAmt + 1, 2, 5)
+    xGridAmtOutput.value = xGridAmt.toString()
+}
+
+function yDecreasePress(): void {
+    yGridAmt = clamp(yGridAmt - 1, 2, 5)
+    yGridAmtOutput.value = yGridAmt.toString()
+}
+
+function yIncreasePress(): void {
+    yGridAmt = clamp(yGridAmt + 1, 2, 5)
+    yGridAmtOutput.value = yGridAmt.toString()
+}
+
+let mouseX: number = 0
+let mouseY: number = 0
+let mouseLastX: number = 0
+let mouseLastY: number = 0
+let mouseDiffX: number = 0
+let mouseDiffY: number = 0
+let mouseDown: boolean = false
+
+function onPointerMove(e: PointerEvent) {
+    mouseX = e.offsetX
+    mouseY = e.offsetY
+}
+
+function onPointerDown() {
+    mouseDown = true
+}
+
+function onPointerUp() {
+    mouseDown = false
+}
+
+// Util Functions
 function clamp(val: number, min: number, max: number): number {
     return Math.min(Math.max(val, min), max)
 }
@@ -179,15 +227,6 @@ export function getAlignedCorners(imageUrl: string): Promise<Point[]> {
         canvas.width = imageW
         canvas.height = imageH
 
-        // Vars
-        let mouseX: number = 0
-        let mouseY: number = 0
-        let mouseLastX: number = 0
-        let mouseLastY: number = 0
-        let mouseDiffX: number = 0
-        let mouseDiffY: number = 0
-        let mouseDown: boolean = false
-
         let circlePositions: Circle[] = [
             {
                 location: {
@@ -216,32 +255,15 @@ export function getAlignedCorners(imageUrl: string): Promise<Point[]> {
             }
         ]
 
-        // Grid Buttons Functionality
-        let xGridAmt = 3
-        let yGridAmt = 3
+        // Listeners
+        xDecreaseButton.addEventListener("click", xDecreasePress)
+        xIncreaseButton.addEventListener("click", xIncreasePress)
+        yDecreaseButton.addEventListener("click", yDecreasePress)
+        yIncreaseButton.addEventListener("click", yIncreasePress)
 
-        xGridAmtOutput.value = xGridAmt.toString()
-        yGridAmtOutput.value = yGridAmt.toString()
-
-        xDecreaseButton.addEventListener("click", () => {
-            xGridAmt = clamp(xGridAmt - 1, 2, 5)
-            xGridAmtOutput.value = xGridAmt.toString()
-        })
-
-        xIncreaseButton.addEventListener("click", () => {
-            xGridAmt = clamp(xGridAmt + 1, 2, 5)
-            xGridAmtOutput.value = xGridAmt.toString()
-        })
-
-        yDecreaseButton.addEventListener("click", () => {
-            yGridAmt = clamp(xGridAmt - 1, 2, 5)
-            yGridAmtOutput.value = yGridAmt.toString()
-        })
-
-        yIncreaseButton.addEventListener("click", () => {
-            yGridAmt = clamp(xGridAmt + 1, 2, 5)
-            yGridAmtOutput.value = yGridAmt.toString()
-        })
+        canvas.addEventListener("pointermove", onPointerMove)
+        canvas.addEventListener("pointerdown", onPointerDown)
+        canvas.addEventListener("pointerup", onPointerUp)
 
         // Functions
         function updateMouseDiff(): void {
@@ -294,29 +316,24 @@ export function getAlignedCorners(imageUrl: string): Promise<Point[]> {
             requestAnimationFrame(update)
         }
 
-        // Canvas Connections
-        canvas.addEventListener("pointermove", (e: PointerEvent) => {
-            mouseX = e.offsetX
-            mouseY = e.offsetY
-        })
-
-        canvas.addEventListener("pointerdown", (e: PointerEvent) => {
-            mouseDown = true
-        })
-
-        canvas.addEventListener("pointerup", (e: PointerEvent) => {
-            mouseDown  = false
-        })
-
         // Finish Button
-        alignFinishButton.addEventListener("click", () => {
+        alignFinishButton.onclick = () => {
+            xDecreaseButton.removeEventListener("click", xDecreasePress)
+            xIncreaseButton.removeEventListener("click", xIncreasePress)
+            yDecreaseButton.removeEventListener("click", yDecreasePress)
+            yIncreaseButton.removeEventListener("click", yIncreasePress)
+
+            canvas.removeEventListener("pointermove", onPointerMove)
+            canvas.removeEventListener("pointerdown", onPointerDown)
+            canvas.removeEventListener("pointerup", onPointerUp)
+
             resolve(
                 circlePositions.map(circle => ({
                     x: circle.location.x / imageW,
                     y: circle.location.y / imageH
                 }))
             )
-        })
+        }
 
         // Entry Point
         update()
