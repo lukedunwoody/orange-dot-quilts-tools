@@ -3,7 +3,7 @@
 import { urlToImage } from "./imageUtils.js"
 import type { Point, PointsData } from "./types.js"
 
-// UI Apparance Config (percent of width)
+// UI Appearance Config (percent of width)
 const CIRCLE_START_OFFSET: number     = 0.125
 const CIRCLE_DRAW_RADIUS: number      = 0.008
 const CIRCLE_HITBOX_RADIUS: number    = CIRCLE_DRAW_RADIUS * 3
@@ -28,7 +28,7 @@ const yIncreaseButton = document.getElementById("increase-y") as HTMLButtonEleme
 const xGridAmtOutput = document.getElementById("amt-x-grid") as HTMLOutputElement
 const yGridAmtOutput = document.getElementById("amt-y-grid") as HTMLOutputElement
 
-const swapColorButton = document.getElementById("swap-color") as HTMLButtonElement
+const alignSwapColorButton = document.getElementById("align-swap-color") as HTMLButtonElement
 
 const canvas = document.getElementById("align-canvas") as HTMLCanvasElement
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
@@ -283,7 +283,7 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
         yDecreaseButton.addEventListener("click", yDecreasePress)
         yIncreaseButton.addEventListener("click", yIncreasePress)
 
-        swapColorButton.addEventListener("click", swapColorPress)
+        alignSwapColorButton.addEventListener("click", swapColorPress)
 
         canvas.addEventListener("pointermove", onPointerMove)
         canvas.addEventListener("pointerdown", onPointerDown)
@@ -303,8 +303,8 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
 
             for (const circle of circlePositions) {
                 const isUnderPointer = (
-                    Math.abs(mouseX - circle.location.x) < CIRCLE_HITBOX_RADIUS * imageW
-                    && Math.abs(mouseY - circle.location.y) < CIRCLE_HITBOX_RADIUS * imageW
+                    Math.abs(mouseX - circle.location.x) < hitboxRadius
+                    && Math.abs(mouseY - circle.location.y) < hitboxRadius
                 )
 
                 if (circle.state === "active" && mouseDown) {
@@ -321,7 +321,7 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
             }
         }
 
-        const update = (): void => {
+        function update(): void {
             ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
             ctx.drawImage(image, 0, 0)
             updateMouseDiff()
@@ -341,13 +341,15 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
         }
 
         // Finish Button
-        alignFinishButton.onclick = () => {
+        function alignFinishPress(): void {
+            alignFinishButton.removeEventListener("click", alignFinishPress)
+
             xDecreaseButton.removeEventListener("click", xDecreasePress)
             xIncreaseButton.removeEventListener("click", xIncreasePress)
             yDecreaseButton.removeEventListener("click", yDecreasePress)
             yIncreaseButton.removeEventListener("click", yIncreasePress)
 
-            swapColorButton.removeEventListener("click", swapColorPress)
+            alignSwapColorButton.removeEventListener("click", swapColorPress)
 
             canvas.removeEventListener("pointermove", onPointerMove)
             canvas.removeEventListener("pointerdown", onPointerDown)
@@ -364,6 +366,8 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
                 points: returnPoints,
             })
         }
+
+        alignFinishButton.addEventListener("click", alignFinishPress)
 
         // Entry Point
         update()
