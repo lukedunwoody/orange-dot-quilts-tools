@@ -1,7 +1,7 @@
 // Step Two Helper
 
 import { urlToImage } from "./imageUtils.js"
-import type { Point, PointsData } from "@odq-tri-cropper/shared"
+import type { Point, PointsData } from "./types.js"
 
 // UI Apparance Config (percent of width)
 const CIRCLE_START_OFFSET: number     = 0.125

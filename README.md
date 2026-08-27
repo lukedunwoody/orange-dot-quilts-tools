@@ -2,17 +2,7 @@
 
 ## Set Up Local Environment
 
-Build:
+Run:
 ```bash
-npm run build
-```
-
-Run frontend:
-```bash
-npm run dev:frontend
-```
-
-Run backend:
-```bash
-npm run dev:backend
+npm run dev
 ```

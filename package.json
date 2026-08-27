@@ -1,13 +1,27 @@
 {
-  "private": true,
-  "workspaces": [
-    "frontend",
-    "backend",
-    "shared"
-  ],
-  "scripts": {
-    "build": "npm run build --workspace=shared && npm run build --workspace=frontend && npm run build --workspace=backend",
-    "dev:frontend": "npm run dev --workspace=frontend",
-    "dev:backend": "npm run dev --workspace=backend"
-  }
+    "name": "odq-tri-cropper",
+    "version": "0.1.0",
+    "description": "Triangle Cropper",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/lukedunwoody/odq-tri-cropper.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/lukedunwoody/odq-tri-cropper/issues"
+    },
+    "homepage": "https://github.com/lukedunwoody/odq-tri-cropper#readme",
+    "devDependencies": {
+        "typescript": "^7.0.2",
+        "vite": "^8.2.2"
+    }
 }

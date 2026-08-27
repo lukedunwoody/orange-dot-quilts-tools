@@ -1,7 +1,9 @@
 // Probably some of the most dense math I have ever written
 // Sorry in advance to future self or others for the naming
 
-import type { Point, ImageDataPayload } from "@odq-tri-cropper/shared"
+// TODO Add progress bar
+
+import type { Point } from "./types"
 
 interface RGBA {
     r: number,
@@ -15,7 +17,7 @@ interface ColorWeight {
     weight: number
 }
 
-function getPixelColor(imageData: ImageDataPayload, x: number, y: number): RGBA {
+function getPixelColor(imageData: ImageData, x: number, y: number): RGBA {
     if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
         throw new Error("Coordinates are out of bounds")
     }
@@ -28,7 +30,7 @@ function getPixelColor(imageData: ImageDataPayload, x: number, y: number): RGBA 
     }
 }
 
-function setPixelColor(imageData: ImageDataPayload, x: number, y: number, color: RGBA): void {
+function setPixelColor(imageData: ImageData, x: number, y: number, color: RGBA): void {
     if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
         throw new Error("Coordinates are out of bounds")
     }
@@ -127,17 +129,13 @@ function averageColorsByWeight(colorWeights: ColorWeight[]): RGBA {
     return averagedColor
 }
 
-export function normalizeImage(image: ImageDataPayload, circlePositions: [Point, Point, Point, Point], outputW: number = 1000, outputH: number = 1000): ImageDataPayload {
+export function normalizeImage(image: ImageData, circlePositions: [Point, Point, Point, Point], outputW: number = 1000, outputH: number = 1000): ImageData {
     // x and y of items in circle positions are already normalized between 0 and 1
 
     const inputImageW: number = image.width
     const inputImageH: number = image.height
 
-    let returnImage: ImageDataPayload = {
-        width: outputW,
-        height: outputH,
-        data: new Uint8ClampedArray(outputW * outputH * 4)
-    }
+    let returnImage: ImageData = new ImageData(outputW, outputH)
 
     // Rises and runs for original 4 lines
     let rises: number[] = []
