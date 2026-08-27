@@ -15,5 +15,8 @@
   "devDependencies": {
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
+  },
+  "dependencies": {
+    "@odq-tri-cropper/shared": "1.0.0"
   }
 }

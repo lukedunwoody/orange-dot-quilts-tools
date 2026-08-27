@@ -1,15 +1,13 @@
 // Step Two Helper
 
-// TODO remove event listeners after function returns
-
 import { urlToImage } from "./imageUtils.js"
-import type { Point } from "./types.js"
+import type { Point, PointsData } from "@odq-tri-cropper/shared"
 
 // UI Apparance Config (percent of width)
 const CIRCLE_START_OFFSET: number     = 0.125
 const CIRCLE_DRAW_RADIUS: number      = 0.008
 const CIRCLE_HITBOX_RADIUS: number    = CIRCLE_DRAW_RADIUS * 3
-const CIRCLE_PRECISE_RADIUS: number   = 0.0015
+const CIRCLE_PRECISE_RADIUS: number   = CIRCLE_DRAW_RADIUS / 5
 
 const CIRCLE_ACTIVE_COLORS: string[]  = ["#FFFFFF88", "#00000088"]
 const CIRCLE_HOVER_COLORS: string[]   = ["#888888BB", "#888888BB"]
@@ -240,7 +238,7 @@ function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number,
 }
 
 // Main
-export function getAlignedCorners(imageUrl: string): Promise<Point[]> {
+export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
     return new Promise(async (resolve) => {
         // Data
         const image = await urlToImage(imageUrl)
@@ -251,7 +249,7 @@ export function getAlignedCorners(imageUrl: string): Promise<Point[]> {
         canvas.width = imageW
         canvas.height = imageH
 
-        let circlePositions: Circle[] = [
+        let circlePositions: [Circle, Circle, Circle, Circle] = [
             {
                 location: {
                     x: imageW * CIRCLE_START_OFFSET,
@@ -355,12 +353,16 @@ export function getAlignedCorners(imageUrl: string): Promise<Point[]> {
             canvas.removeEventListener("pointerdown", onPointerDown)
             canvas.removeEventListener("pointerup", onPointerUp)
 
-            resolve(
-                circlePositions.map(circle => ({
-                    x: circle.location.x / imageW,
-                    y: circle.location.y / imageH
-                }))
-            )
+            const returnPoints: [Point, Point, Point, Point] = circlePositions.map(circle => ({
+                x: circle.location.x / imageW,
+                y: circle.location.y / imageH
+            })) as [Point, Point, Point, Point]
+
+            resolve({
+                gridWidth: xGridAmt,
+                gridHeight: yGridAmt,
+                points: returnPoints,
+            })
         }
 
         // Entry Point

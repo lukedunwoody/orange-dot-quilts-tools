@@ -1,12 +1,7 @@
 // Probably some of the most dense math I have ever written
 // Sorry in advance to future self or others for the naming
 
-import type { Circle, QuadCircles } from "./corners"
-
-interface Point {
-    x: number,
-    y: number
-}
+import type { Point, ImageDataPayload } from "@odq-tri-cropper/shared"
 
 interface RGBA {
     r: number,
@@ -20,7 +15,7 @@ interface ColorWeight {
     weight: number
 }
 
-function getPixelColor(imageData: ImageData, x: number, y: number): RGBA {
+function getPixelColor(imageData: ImageDataPayload, x: number, y: number): RGBA {
     if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
         throw new Error("Coordinates are out of bounds")
     }
@@ -33,7 +28,7 @@ function getPixelColor(imageData: ImageData, x: number, y: number): RGBA {
     }
 }
 
-function setPixelColor(imageData: ImageData, x: number, y: number, color: RGBA): void {
+function setPixelColor(imageData: ImageDataPayload, x: number, y: number, color: RGBA): void {
     if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
         throw new Error("Coordinates are out of bounds")
     }
@@ -132,21 +127,25 @@ function averageColorsByWeight(colorWeights: ColorWeight[]): RGBA {
     return averagedColor
 }
 
-export function normalizeImage(image: ImageData, circlePositions: QuadCircles, outputW: number = 1000, outputH: number = 1000): ImageData {
+export function normalizeImage(image: ImageDataPayload, circlePositions: [Point, Point, Point, Point], outputW: number = 1000, outputH: number = 1000): ImageDataPayload {
     // x and y of items in circle positions are already normalized between 0 and 1
 
-    let inputImageW: number = image.width
-    let inputImageH: number = image.height
+    const inputImageW: number = image.width
+    const inputImageH: number = image.height
 
-    let returnImage: ImageData = new ImageData(outputW, outputH)
+    let returnImage: ImageDataPayload = {
+        width: outputW,
+        height: outputH,
+        data: new Uint8ClampedArray(outputW * outputH * 4)
+    }
 
     // Rises and runs for original 4 lines
     let rises: number[] = []
     let runs: number[] = []
 
     for (let i: number = 0; i < 4; i++) {
-        const circle0: Circle = circlePositions[i]!
-        const circle1: Circle = circlePositions[(i+1)%4]!
+        const circle0: Point = circlePositions[i]!
+        const circle1: Point = circlePositions[(i+1)%4]!
 
         rises[i] = circle1.y - circle0.y
         runs[i] = circle1.x - circle0.x
