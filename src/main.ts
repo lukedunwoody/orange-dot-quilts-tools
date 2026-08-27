@@ -26,7 +26,7 @@ async function main() {
         pointsData.gridHeight * PX_PER_GRID
     )
 
-    letUserPreview(normalizedImageData)
+    letUserPreview(normalizedImageData, pointsData.gridWidth, pointsData.gridHeight)
 }
 
 main()
