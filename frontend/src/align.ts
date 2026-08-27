@@ -6,20 +6,20 @@ import { urlToImage } from "./imageUtils.js"
 import type { Point } from "./types.js"
 
 // UI Apparance Config (percent of width)
-const CIRCLE_START_OFFSET: number   = 0.1
-const CIRCLE_DRAW_RADIUS: number    = 0.01
-const CIRCLE_HITBOX_RADIUS: number  = 0.03
-const CIRCLE_PRECISE_RADIUS: number = 0.003
+const CIRCLE_START_OFFSET: number     = 0.125
+const CIRCLE_DRAW_RADIUS: number      = 0.008
+const CIRCLE_HITBOX_RADIUS: number    = CIRCLE_DRAW_RADIUS * 3
+const CIRCLE_PRECISE_RADIUS: number   = 0.0015
 
-const CIRCLE_ACTIVE_COLOR: string   = "#FFFFFF88"
-const CIRCLE_HOVER_COLOR: string    = "#888888BB"
-const CIRCLE_PASSIVE_COLOR: string  = "#00000088"
-const CIRCLE_PRECISE_COLOR: string  = "#FF0000DD"
+const CIRCLE_ACTIVE_COLORS: string[]  = ["#FFFFFF88", "#00000088"]
+const CIRCLE_HOVER_COLORS: string[]   = ["#888888BB", "#888888BB"]
+const CIRCLE_PASSIVE_COLORS: string[] = ["#00000088", "#FFFFFF88"]
+const CIRCLE_PRECISE_COLORS: string[] = ["#FF0000FF", "#00FFFFFF"]
 
-const GRID_OUTLINE_WEIGHT: number   = 0.01
-const GRID_INLINE_WEIGHT: number    = 0.005
-const GRID_OUTLINE_COLOR: string    = "#0088FFBB"
-const GRID_INLINE_COLOR: string     = "#00FF8888"
+const GRID_OUTLINE_WEIGHT: number     = CIRCLE_PRECISE_RADIUS * 2
+const GRID_INLINE_WEIGHT: number      = GRID_OUTLINE_WEIGHT / 2
+const GRID_OUTLINE_COLORS: string[]   = ["#000000FF", "#FFFFFFFF"]
+const GRID_INLINE_COLORS: string[]    = ["#000000FF", "#FFFFFFFF"]
 
 // Elements
 const xDecreaseButton = document.getElementById("decrease-x") as HTMLButtonElement
@@ -29,6 +29,8 @@ const yIncreaseButton = document.getElementById("increase-y") as HTMLButtonEleme
 
 const xGridAmtOutput = document.getElementById("amt-x-grid") as HTMLOutputElement
 const yGridAmtOutput = document.getElementById("amt-y-grid") as HTMLOutputElement
+
+const swapColorButton = document.getElementById("swap-color") as HTMLButtonElement
 
 const canvas = document.getElementById("align-canvas") as HTMLCanvasElement
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
@@ -68,6 +70,28 @@ function yIncreasePress(): void {
     yGridAmtOutput.value = yGridAmt.toString()
 }
 
+let activeColorIndex: number = 0
+
+let circleActiveColor: string = CIRCLE_ACTIVE_COLORS[activeColorIndex]!
+let circleHoverColor: string = CIRCLE_HOVER_COLORS[activeColorIndex]!
+let circlePassiveColor: string = CIRCLE_PASSIVE_COLORS[activeColorIndex]!
+let circlePreciseColor: string = CIRCLE_PRECISE_COLORS[activeColorIndex]!
+
+let gridOutlineColor: string = GRID_OUTLINE_COLORS[activeColorIndex]!
+let gridInlineColor: string = GRID_INLINE_COLORS[activeColorIndex]!
+
+function swapColorPress(): void {
+    activeColorIndex = (activeColorIndex + 1) % 2
+
+    circleActiveColor = CIRCLE_ACTIVE_COLORS[activeColorIndex]!
+    circleHoverColor = CIRCLE_HOVER_COLORS[activeColorIndex]!
+    circlePassiveColor = CIRCLE_PASSIVE_COLORS[activeColorIndex]!
+    circlePreciseColor = CIRCLE_PRECISE_COLORS[activeColorIndex]!
+
+    gridOutlineColor = GRID_OUTLINE_COLORS[activeColorIndex]!
+    gridInlineColor = GRID_INLINE_COLORS[activeColorIndex]!
+}
+
 let mouseX: number = 0
 let mouseY: number = 0
 let mouseLastX: number = 0
@@ -97,15 +121,15 @@ function clamp(val: number, min: number, max: number): number {
 function drawCircle(circle: Circle, radius: number, preciseRadius: number): void {
     ctx.beginPath()
     ctx.arc(circle.location.x, circle.location.y, radius, 0, Math.PI * 2)
-    ctx.fillStyle = circle.state === "active" ? CIRCLE_ACTIVE_COLOR :
-        circle.state === "hover" ? CIRCLE_HOVER_COLOR :
-        CIRCLE_PASSIVE_COLOR
+    ctx.fillStyle = circle.state === "active" ? circleActiveColor :
+        circle.state === "hover" ? circleHoverColor :
+        circlePassiveColor
     ctx.fill()
     ctx.closePath()
 
     ctx.beginPath()
     ctx.arc(circle.location.x, circle.location.y, preciseRadius, 0, Math.PI * 2)
-    ctx.fillStyle = CIRCLE_PRECISE_COLOR
+    ctx.fillStyle = circlePreciseColor
     ctx.fill()
     ctx.closePath()
 }
@@ -169,7 +193,7 @@ function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number,
             y: start1.y + rises[2]! * ((xGridAmt-(i+1)) / xGridAmt)
         }
 
-        drawLine(point0, point1, GRID_INLINE_WEIGHT * imageW, GRID_INLINE_COLOR)
+        drawLine(point0, point1, GRID_INLINE_WEIGHT * imageW, gridInlineColor)
     }
 
     for (let i: number = 0; i < yGridAmt - 1; i++) {
@@ -194,7 +218,7 @@ function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number,
             y: start1.y + rises[3]! * ((yGridAmt-(i+1)) / yGridAmt)
         }
 
-        drawLine(point0, point1, GRID_INLINE_WEIGHT * imageW, GRID_INLINE_COLOR)
+        drawLine(point0, point1, GRID_INLINE_WEIGHT * imageW, gridInlineColor)
     }
 
     // Outline
@@ -211,7 +235,7 @@ function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number,
             y: circle1.location.y
         }
 
-        drawLine(point0, point1, GRID_OUTLINE_WEIGHT * imageW, GRID_OUTLINE_COLOR)
+        drawLine(point0, point1, GRID_OUTLINE_WEIGHT * imageW, gridOutlineColor)
     }
 }
 
@@ -260,6 +284,8 @@ export function getAlignedCorners(imageUrl: string): Promise<Point[]> {
         xIncreaseButton.addEventListener("click", xIncreasePress)
         yDecreaseButton.addEventListener("click", yDecreasePress)
         yIncreaseButton.addEventListener("click", yIncreasePress)
+
+        swapColorButton.addEventListener("click", swapColorPress)
 
         canvas.addEventListener("pointermove", onPointerMove)
         canvas.addEventListener("pointerdown", onPointerDown)
@@ -322,6 +348,8 @@ export function getAlignedCorners(imageUrl: string): Promise<Point[]> {
             xIncreaseButton.removeEventListener("click", xIncreasePress)
             yDecreaseButton.removeEventListener("click", yDecreasePress)
             yIncreaseButton.removeEventListener("click", yIncreasePress)
+
+            swapColorButton.removeEventListener("click", swapColorPress)
 
             canvas.removeEventListener("pointermove", onPointerMove)
             canvas.removeEventListener("pointerdown", onPointerDown)
