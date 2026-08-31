@@ -3,9 +3,10 @@
 import type { Point } from "./types"
 
 // UI Appearance Config (percent of width)
-const LINE_WEIGHT: number    = 0.01
-const GRID_COLORS: string[]  = ["#000000FF", "#FFFFFFFF"]
-const HOVER_COLORS: string[] = ["#00000088", "#FFFFFF88"]
+const LINE_WEIGHT: number     = 0.01
+const GRID_COLORS: string[]   = ["#000000FF", "#FFFFFFFF"]
+const HOVER_COLORS: string[]  = ["#00000088", "#FFFFFF88"]
+const ACTIVE_COLORS: string[] = ["#44444488", "#AAAAAA88"]
 
 // Elements
 const previewSwapColorButton = document.getElementById("preview-swap-color") as HTMLButtonElement
@@ -20,11 +21,13 @@ const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
 let activeColorIndex: number = 0
 let gridColor: string = GRID_COLORS[activeColorIndex]!
 let hoverColor: string = HOVER_COLORS[activeColorIndex]!
+let activeColor: string = ACTIVE_COLORS[activeColorIndex]!
 
 function swapColorPress(): void {
     activeColorIndex = (activeColorIndex + 1) % 2
     gridColor = GRID_COLORS[activeColorIndex]!
     hoverColor = HOVER_COLORS[activeColorIndex]!
+    activeColor = ACTIVE_COLORS[activeColorIndex]!
 }
 
 let mouseX: number = 0
@@ -57,7 +60,7 @@ function drawLine(point0: Point, point1: Point, width: number, color: string): v
 function drawTriGrid(
     canvasW: number, canvasH: number,
     imageW: number, imageH: number,
-    xGridAmt: number, yGridAmt: number)
+    xGridAmt: number, yGridAmt: number): void
 {
     const lineWeight: number = (LINE_WEIGHT * imageW)
 
@@ -195,6 +198,88 @@ function drawTriGrid(
     }
 }
 
+function getTriPoints(
+    canvasW: number, canvasH: number,
+    imageW: number, imageH: number,
+    xGridAmt: number, yGridAmt: number): [Point, Point, Point]
+{
+    const pxPerGrid: Point = {
+        x: (imageW / xGridAmt),
+        y: (imageH / yGridAmt)
+    }
+
+    // Determine row and column
+    const gridCords: Point = {
+        x: Math.floor(mouseX / pxPerGrid.x),
+        y: Math.floor(mouseY / pxPerGrid.y)
+    }
+
+    // Determine corner cords of grid square
+    let cornerCords: Point[] = []
+    let midPoint: Point = {x: 0, y: 0}
+
+    for (let i: number = 0; i < 4; i++) {
+        const x: number = i === 0 || i === 1 ? gridCords.x * pxPerGrid.x : (gridCords.x + 1) * pxPerGrid.x
+        const y: number = i === 0 || i === 3 ? gridCords.y * pxPerGrid.y : (gridCords.y + 1) * pxPerGrid.y
+
+        cornerCords[i] = {
+            x: x,
+            y: y
+        }
+
+        midPoint.x += x
+        midPoint.y += y
+    }
+
+    midPoint.x /= 4
+    midPoint.y /= 4
+
+    // Determine mouse cords as percentage inside grid
+    const relativeCords: Point = {
+        x: (mouseX - cornerCords[0]!.x) / pxPerGrid.x,
+        y: (mouseY - cornerCords[0]!.y) / pxPerGrid.y
+    }
+
+    let returnPoints: [Point, Point, Point] = [
+        midPoint,
+        relativeCords.x < relativeCords.y       ? cornerCords[1]! : cornerCords[3]!,
+        relativeCords.x < (1 - relativeCords.y) ? cornerCords[0]! : cornerCords[2]!
+    ]
+
+    const canvasOffset: Point = {
+        x: (canvasW - imageW) / 2,
+        y: (canvasH - imageH) / 2
+    }
+
+    for (let i: number = 0; i < 3; i++) {
+        returnPoints[i]!.x += canvasOffset.x
+        returnPoints[i]!.y += canvasOffset.y
+    }
+
+    return returnPoints
+}
+
+function drawHover(
+    canvasW: number, canvasH: number,
+    imageW: number, imageH: number,
+    xGridAmt: number, yGridAmt: number): void
+{
+    const points = getTriPoints(
+        canvasW, canvasH,
+        imageW, imageH,
+        xGridAmt, yGridAmt
+    )
+
+    ctx.beginPath()
+    ctx.moveTo(points[0].x, points[0].y)
+    ctx.lineTo(points[1].x, points[1].y)
+    ctx.lineTo(points[2].x, points[2].y)
+    ctx.closePath()
+    ctx.lineWidth = 0
+    ctx.fillStyle = mouseDown ? activeColor : hoverColor
+    ctx.fill()
+}
+
 export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number, yGridAmt: number): Promise<void> {
     return new Promise((resolve) => {
         canvas.width = normalizedImageData.width + (normalizedImageData.width * LINE_WEIGHT * 2)
@@ -208,6 +293,12 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
 
         function update(): void {
             ctx.putImageData(normalizedImageData, normalizedImageData.width * LINE_WEIGHT, normalizedImageData.width * LINE_WEIGHT)
+
+            drawHover(
+                canvas.width, canvas.height,
+                normalizedImageData.width, normalizedImageData.height,
+                xGridAmt, yGridAmt
+            )
             drawTriGrid(
                 canvas.width, canvas.height,
                 normalizedImageData.width, normalizedImageData.height,
