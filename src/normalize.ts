@@ -3,42 +3,12 @@
 
 // TODO Add progress bar
 
-import type { Point } from "./types"
-
-interface RGBA {
-    r: number,
-    g: number,
-    b: number,
-    a: number
-}
+import { getPixelColor, setPixelColor } from "./imageUtils"
+import type { Point, RGBA } from "./types"
 
 interface ColorWeight {
     color: RGBA,
     weight: number
-}
-
-function getPixelColor(imageData: ImageData, x: number, y: number): RGBA {
-    if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
-        throw new Error("Coordinates are out of bounds")
-    }
-    const index = (y * imageData.width + x) * 4
-    return {
-        r: imageData.data[index]!,     // Red (0-255)
-        g: imageData.data[index + 1]!, // Green (0-255)
-        b: imageData.data[index + 2]!, // Blue (0-255)
-        a: imageData.data[index + 3]!  // Alpha/Opacity (0-255)
-    }
-}
-
-function setPixelColor(imageData: ImageData, x: number, y: number, color: RGBA): void {
-    if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
-        throw new Error("Coordinates are out of bounds")
-    }
-    const index = (y * imageData.width + x) * 4
-    imageData.data[index] = Math.round(color.r)
-    imageData.data[index + 1] = Math.round(color.g)
-    imageData.data[index + 2] = Math.round(color.b)
-    imageData.data[index + 3] = Math.round(color.a)
 }
 
 // DISCLAIMER: The following function was made by an LLM
@@ -129,7 +99,7 @@ function averageColorsByWeight(colorWeights: ColorWeight[]): RGBA {
     return averagedColor
 }
 
-export function normalizeImage(image: ImageData, circlePositions: [Point, Point, Point, Point], outputW: number = 1000, outputH: number = 1000): ImageData {
+export function normalizeImage(image: ImageData, circlePositions: [Point, Point, Point, Point], outputW: number, outputH: number): ImageData {
     // x and y of items in circle positions are already normalized between 0 and 1
 
     const inputImageW: number = image.width
@@ -216,9 +186,6 @@ export function normalizeImage(image: ImageData, circlePositions: [Point, Point,
 
             const sMostEdge = Math.ceil(Math.max(inputGridPoints[3]!.y, inputGridPoints[2]!.y))
             const eMostEdge = Math.ceil(Math.max(inputGridPoints[2]!.x, inputGridPoints[1]!.x))
-
-            const pxInsideW: number = eMostEdge - wMostEdge
-            const pxInsideH: number = sMostEdge - nMostEdge
 
             // Step 3: Weigh each input pixel by how much they inside output grid
             // Find area of output pixel inside input grid by:
