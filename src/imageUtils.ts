@@ -25,6 +25,9 @@ export function imageToImageData(image: HTMLImageElement): ImageData {
 
 export function getPixelColor(imageData: ImageData, x: number, y: number): RGBA {
     if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
+        console.log("--- ERROR: OUT OF BOUNDS ---\nDEBUG:\nfunc: getPixelColor")
+        console.log(`ImgData: ${imageData.width}, ${imageData.height}`)
+        console.log(`Asked for: ${x}, ${y}`)
         throw new Error("Coordinates are out of bounds")
     }
     const index = (y * imageData.width + x) * 4
@@ -38,6 +41,9 @@ export function getPixelColor(imageData: ImageData, x: number, y: number): RGBA 
 
 export function setPixelColor(imageData: ImageData, x: number, y: number, color: RGBA): void {
     if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
+        console.log("--- ERROR: OUT OF BOUNDS ---\nDEBUG:\nfunc: setPixelColor")
+        console.log(`ImgData: ${imageData.width}, ${imageData.height}`)
+        console.log(`Asked for: ${x}, ${y}`)
         throw new Error("Coordinates are out of bounds")
     }
     const index = (y * imageData.width + x) * 4
