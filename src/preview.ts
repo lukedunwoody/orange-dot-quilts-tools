@@ -3,6 +3,10 @@
 import { getPixelColor, setPixelColor } from "./imageUtils"
 import type { Point, RGBA } from "./types"
 
+// Output Settings
+const X_OUTPUT_MULT = 3
+const Y_OUTPUT_MULT = 3
+
 // UI Appearance Config (percent of width)
 const LINE_WEIGHT: number     = 0.004
 const GRID_COLORS: string[]   = ["#000000FF", "#FFFFFFFF"]
@@ -356,6 +360,45 @@ async function constructCompletedSqaure(imageData: ImageData, triData: TriData, 
     return returnImage
 }
 
+function flipImageData(imageData: ImageData, flipX: boolean, flipY: boolean): ImageData {
+    if (!flipX && !flipY) {
+        return imageData
+    }
+
+    const imageW: number = imageData.width
+    const imageH: number = imageData.height
+
+    let returnImage: ImageData = new ImageData(imageW, imageH)
+
+    for (let i: number = 0; i < imageW; i++) {
+        for (let j: number = 0; j < imageH; j++) {
+            const color = getPixelColor(imageData, i, j)
+
+            setPixelColor(
+                returnImage,
+                Math.abs(((imageW - 1) * +flipX) - i),
+                Math.abs(((imageH - 1) * +flipY) - j),
+                color
+            )
+        }
+    }
+
+    return returnImage
+}
+
+function drawSqaurePattern(imageData: ImageData, pxPerGrid: number): void {
+    for (let i: number = 0; i < X_OUTPUT_MULT; i++) {
+        const flipX = i % 2 !== 0
+
+        for (let j: number = 0; j < Y_OUTPUT_MULT; j++) {
+            const flipY = j % 2 !== 0
+            const flippedImage: ImageData = flipImageData(imageData, flipX, flipY)
+
+            completeTX.putImageData(flippedImage, i * pxPerGrid, j * pxPerGrid)
+        }
+    }
+}
+
 export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number, yGridAmt: number): Promise<void> {
     return new Promise((resolve) => {
         const imageW = normalizedImageData.width
@@ -369,8 +412,8 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
         canvas.width = cavnasW
         canvas.height = canvasH
 
-        completeCanvas.width = pxPerGrid
-        completeCanvas.height = pxPerGrid
+        completeCanvas.width  = pxPerGrid * X_OUTPUT_MULT
+        completeCanvas.height = pxPerGrid * Y_OUTPUT_MULT
 
         canvas.addEventListener("pointermove", onPointerMove)
         canvas.addEventListener("pointerdown", onPointerDown)
@@ -395,9 +438,8 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
             if (mouseDown && !mouseDownLast && !completeFunctionWorking) {
                 completeFunctionWorking = true
                 try {
-                    const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triData, pxPerGrid) // TODO thread + async
-                    console.log("Done")
-                    completeTX.putImageData(completeSquareData, 0, 0)
+                    const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triData, pxPerGrid)
+                    drawSqaurePattern(completeSquareData, pxPerGrid)
                 } finally {
                     completeFunctionWorking = false
                 }
