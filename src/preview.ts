@@ -1,21 +1,30 @@
 // Step Three Helper
 
-import type { Point } from "./types"
+import { getPixelColor, setPixelColor } from "./imageUtils"
+import type { Point, RGBA } from "./types"
 
 // UI Appearance Config (percent of width)
-const LINE_WEIGHT: number     = 0.01
+const LINE_WEIGHT: number     = 0.004
 const GRID_COLORS: string[]   = ["#000000FF", "#FFFFFFFF"]
 const HOVER_COLORS: string[]  = ["#00000088", "#FFFFFF88"]
 const ACTIVE_COLORS: string[] = ["#44444488", "#AAAAAA88"]
 
 // Elements
 const previewSwapColorButton = document.getElementById("preview-swap-color") as HTMLButtonElement
-const previewImage = document.getElementById("preview-image") as HTMLImageElement
 const previewDownloadButton = document.getElementById("preview-download-button") as HTMLButtonElement
 const restartButton = document.getElementById("restart-button") as HTMLButtonElement
 
-const canvas = document.getElementById("preview-canvas") as HTMLCanvasElement
+const canvas = document.getElementById("preview-select-canvas") as HTMLCanvasElement
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
+const completeCanvas = document.getElementById("preview-complete-canvas") as HTMLCanvasElement
+const completeTX = completeCanvas.getContext("2d") as CanvasRenderingContext2D
+
+// Interfaces
+interface TriData {
+    points: [Point, Point, Point]
+    pos: [number, number, number]
+    corners: [Point, Point, Point, Point]
+}
 
 // Listener Functions
 let activeColorIndex: number = 0
@@ -33,6 +42,7 @@ function swapColorPress(): void {
 let mouseX: number = 0
 let mouseY: number = 0
 let mouseDown: boolean = false
+let mouseDownLast: boolean = false
 
 function onPointerMove(e: PointerEvent) {
     mouseX = e.offsetX
@@ -198,29 +208,25 @@ function drawTriGrid(
     }
 }
 
-function getTriPoints(
-    canvasW: number, canvasH: number,
-    imageW: number, imageH: number,
-    xGridAmt: number, yGridAmt: number): [Point, Point, Point]
-{
-    const pxPerGrid: Point = {
-        x: (imageW / xGridAmt),
-        y: (imageH / yGridAmt)
-    }
-
+function getTriData(pxPerGrid: number): TriData {
     // Determine row and column
     const gridCords: Point = {
-        x: Math.floor(mouseX / pxPerGrid.x),
-        y: Math.floor(mouseY / pxPerGrid.y)
+        x: Math.floor(mouseX / pxPerGrid),
+        y: Math.floor(mouseY / pxPerGrid)
     }
 
     // Determine corner cords of grid square
-    let cornerCords: Point[] = []
+    let cornerCords: [Point, Point, Point, Point] = [
+        {x: 0, y: 0},
+        {x: 0, y: 0},
+        {x: 0, y: 0},
+        {x: 0, y: 0}
+    ]
     let midPoint: Point = {x: 0, y: 0}
 
     for (let i: number = 0; i < 4; i++) {
-        const x: number = i === 0 || i === 1 ? gridCords.x * pxPerGrid.x : (gridCords.x + 1) * pxPerGrid.x
-        const y: number = i === 0 || i === 3 ? gridCords.y * pxPerGrid.y : (gridCords.y + 1) * pxPerGrid.y
+        let x: number = (i === 0 || i === 3 ? gridCords.x * pxPerGrid : (gridCords.x + 1) * pxPerGrid)
+        let y: number = (i === 0 || i === 1 ? gridCords.y * pxPerGrid : (gridCords.y + 1) * pxPerGrid)
 
         cornerCords[i] = {
             x: x,
@@ -236,54 +242,135 @@ function getTriPoints(
 
     // Determine mouse cords as percentage inside grid
     const relativeCords: Point = {
-        x: (mouseX - cornerCords[0]!.x) / pxPerGrid.x,
-        y: (mouseY - cornerCords[0]!.y) / pxPerGrid.y
+        x: (mouseX - cornerCords[0]!.x) / pxPerGrid,
+        y: (mouseY - cornerCords[0]!.y) / pxPerGrid
     }
+
+    const nOfNW = relativeCords.x > relativeCords.y
+    const nOfNE = relativeCords.x < (1 - relativeCords.y)
 
     let returnPoints: [Point, Point, Point] = [
         midPoint,
-        relativeCords.x < relativeCords.y       ? cornerCords[1]! : cornerCords[3]!,
-        relativeCords.x < (1 - relativeCords.y) ? cornerCords[0]! : cornerCords[2]!
+        nOfNW ? cornerCords[1]! : cornerCords[3]!,
+        nOfNE ? cornerCords[0]! : cornerCords[2]!
     ]
 
-    const canvasOffset: Point = {
-        x: (canvasW - imageW) / 2,
-        y: (canvasH - imageH) / 2
-    }
+    const returnPos: [number, number, number] = [
+        gridCords.x,
+        gridCords.y,
+        Math.abs((+!nOfNW * 3) + (+!nOfNE * -1))
+    ]
 
-    for (let i: number = 0; i < 3; i++) {
-        returnPoints[i]!.x += canvasOffset.x
-        returnPoints[i]!.y += canvasOffset.y
+    return {
+        points: returnPoints,
+        pos: returnPos,
+        corners: cornerCords
     }
-
-    return returnPoints
 }
 
-function drawHover(
-    canvasW: number, canvasH: number,
-    imageW: number, imageH: number,
-    xGridAmt: number, yGridAmt: number): void
-{
-    const points = getTriPoints(
-        canvasW, canvasH,
-        imageW, imageH,
-        xGridAmt, yGridAmt
-    )
-
+function drawHover(triData: TriData, imageOffset: number): void {
     ctx.beginPath()
-    ctx.moveTo(points[0].x, points[0].y)
-    ctx.lineTo(points[1].x, points[1].y)
-    ctx.lineTo(points[2].x, points[2].y)
+    ctx.moveTo(triData.points[0].x + imageOffset, triData.points[0].y + imageOffset)
+    ctx.lineTo(triData.points[1].x + imageOffset, triData.points[1].y + imageOffset)
+    ctx.lineTo(triData.points[2].x + imageOffset, triData.points[2].y + imageOffset)
     ctx.closePath()
     ctx.lineWidth = 0
     ctx.fillStyle = mouseDown ? activeColor : hoverColor
     ctx.fill()
 }
 
+async function constructCompletedSqaure(imageData: ImageData, triData: TriData, pxPerGrid: number): Promise<ImageData> {
+    const triPos: number = triData.pos[2]
+
+    const cornerPoints = triData.corners.map((element, i) => {
+        return {
+            x: i === 0 || i === 3 ? element.x : element.x - 1,
+            y: i === 0 || i === 1 ? element.y : element.y - 1
+        }
+    })
+
+    const pointMain: Point = cornerPoints[triPos]!
+    const rowStart: number = triPos % 2 === 0 ? pointMain.y : pointMain.x
+    const colStart: number = triPos % 2 === 0 ? pointMain.x : pointMain.y
+
+    console.log(rowStart, colStart)
+    console.log(imageData.width, imageData.height)
+
+    const rowDir: number = (triPos === 0 || triPos === 3) ? 1 : -1
+    const colDir: number = (triPos === 0 || triPos === 1) ? 1 : -1
+
+    let returnImage: ImageData = new ImageData(pxPerGrid, pxPerGrid)
+
+    for (let cols: number = (pxPerGrid - 1), row: number = 0; cols > 0; cols--, row++) {
+        for (let col: number = row; col < cols; col++) {
+            const getRow = rowStart + (row * rowDir)
+            const getCol = colStart + (col * colDir)
+
+            const color: RGBA = getPixelColor(imageData, triPos % 2 === 0 ? getCol : getRow, triPos % 2 === 0 ? getRow : getCol)
+
+            /* Non Inverted
+            const placePoints: [Point, Point, Point, Point] = [
+                {
+                    x: col,
+                    y: row
+                }, {
+                    x: (pxPerGrid - 1) - row,
+                    y: col
+                }, {
+                    x: (pxPerGrid - 1) - col,
+                    y: (pxPerGrid - 1) - row
+                }, {
+                    x: row,
+                    y: (pxPerGrid - 1) - col,
+                }
+            ]
+            */
+
+            const placePoints: [Point, Point, Point, Point] = [
+                {
+                    x: col,
+                    y: row
+                }, {
+                    x: (pxPerGrid - 1) - row,
+                    y: ((pxPerGrid - 1) - col) - 1,
+                }, {
+                    x: (pxPerGrid - 1) - col,
+                    y: (pxPerGrid - 1) - row
+                }, {
+                    x: row,
+                    y: col + 1
+                }
+            ]
+
+            for (const point of placePoints) {
+                setPixelColor(
+                    returnImage,
+                    point.x,
+                    point.y,
+                    color
+                )
+            }
+        }
+    }
+
+    return returnImage
+}
+
 export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number, yGridAmt: number): Promise<void> {
     return new Promise((resolve) => {
-        canvas.width = normalizedImageData.width + (normalizedImageData.width * LINE_WEIGHT * 2)
-        canvas.height = normalizedImageData.height + (normalizedImageData.width * LINE_WEIGHT * 2)
+        const imageW = normalizedImageData.width
+        const imageH = normalizedImageData.height
+        const imageOffset = imageW * LINE_WEIGHT
+        const cavnasW = imageW + imageOffset * 2
+        const canvasH = imageH + imageOffset * 2
+
+        const pxPerGrid: number = imageW / xGridAmt
+
+        canvas.width = cavnasW
+        canvas.height = canvasH
+
+        completeCanvas.width = pxPerGrid
+        completeCanvas.height = pxPerGrid
 
         canvas.addEventListener("pointermove", onPointerMove)
         canvas.addEventListener("pointerdown", onPointerDown)
@@ -291,19 +378,32 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
 
         previewSwapColorButton.addEventListener("click", swapColorPress)
 
-        function update(): void {
-            ctx.putImageData(normalizedImageData, normalizedImageData.width * LINE_WEIGHT, normalizedImageData.width * LINE_WEIGHT)
+        let completeFunctionWorking = false
 
-            drawHover(
-                canvas.width, canvas.height,
-                normalizedImageData.width, normalizedImageData.height,
-                xGridAmt, yGridAmt
-            )
+        async function update(): Promise<void> {
+            ctx.putImageData(normalizedImageData, imageOffset, imageOffset)
+
+            const triData = getTriData(pxPerGrid)
+
+            drawHover(triData, imageOffset)
             drawTriGrid(
-                canvas.width, canvas.height,
-                normalizedImageData.width, normalizedImageData.height,
+                cavnasW, canvasH,
+                imageW, imageH,
                 xGridAmt, yGridAmt
             )
+
+            if (mouseDown && !mouseDownLast && !completeFunctionWorking) {
+                completeFunctionWorking = true
+                try {
+                    const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triData, pxPerGrid) // TODO thread + async
+                    console.log("Done")
+                    completeTX.putImageData(completeSquareData, 0, 0)
+                } finally {
+                    completeFunctionWorking = false
+                }
+            }
+
+            mouseDownLast = mouseDown
 
             requestAnimationFrame(update)
         }
