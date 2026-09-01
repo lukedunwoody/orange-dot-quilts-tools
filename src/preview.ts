@@ -14,8 +14,8 @@ const HOVER_COLORS: string[]  = ["#00000088", "#FFFFFF88"]
 const ACTIVE_COLORS: string[] = ["#44444488", "#AAAAAA88"]
 
 // Elements
-const previewSwapColorButton = document.getElementById("preview-swap-color") as HTMLButtonElement
-const previewDownloadButton = document.getElementById("preview-download-button") as HTMLButtonElement
+const swapColorButton = document.getElementById("preview-swap-color") as HTMLButtonElement
+const downloadButton = document.getElementById("preview-download-button") as HTMLButtonElement
 const restartButton = document.getElementById("restart-button") as HTMLButtonElement
 
 const canvas = document.getElementById("preview-select-canvas") as HTMLCanvasElement
@@ -297,9 +297,6 @@ async function constructCompletedSqaure(imageData: ImageData, triData: TriData, 
     const rowStart: number = triPos % 2 === 0 ? pointMain.y : pointMain.x
     const colStart: number = triPos % 2 === 0 ? pointMain.x : pointMain.y
 
-    console.log(rowStart, colStart)
-    console.log(imageData.width, imageData.height)
-
     const rowDir: number = (triPos === 0 || triPos === 3) ? 1 : -1
     const colDir: number = (triPos === 0 || triPos === 1) ? 1 : -1
 
@@ -419,9 +416,12 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
         canvas.addEventListener("pointerdown", onPointerDown)
         canvas.addEventListener("pointerup", onPointerUp)
 
-        previewSwapColorButton.addEventListener("click", swapColorPress)
+        swapColorButton.addEventListener("click", swapColorPress)
+        downloadButton.addEventListener("click", downloadPress)
+        restartButton.addEventListener("click", restartPress)
 
         let completeFunctionWorking = false
+        let previewImageGenerated = false
 
         async function update(): Promise<void> {
             ctx.putImageData(normalizedImageData, imageOffset, imageOffset)
@@ -440,6 +440,7 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
                 try {
                     const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triData, pxPerGrid)
                     drawSqaurePattern(completeSquareData, pxPerGrid)
+                    previewImageGenerated = true
                 } finally {
                     completeFunctionWorking = false
                 }
@@ -450,6 +451,27 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
             requestAnimationFrame(update)
         }
 
+        function downloadPress(): number {
+            if (!previewImageGenerated) return 1
+
+            completeCanvas.toBlob((blob) => {
+                if (!blob) return 2
+
+                const now = new Date()
+                const pad = (value: number): string => value.toString().padStart(2, "0")
+                const filename = `odq-preview-${pad(now.getHours())}-${pad(now.getSeconds())}-${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${pad(now.getFullYear() % 100)}.png`
+                const downloadURL = URL.createObjectURL(blob)
+                const downloadLink = document.createElement("a")
+
+                downloadLink.href = downloadURL
+                downloadLink.download = filename
+                downloadLink.click()
+                URL.revokeObjectURL(downloadURL)
+            })
+
+            return 0
+        }
+
         function restartPress(): void {
             restartButton.removeEventListener("click", restartPress)
 
@@ -457,12 +479,11 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
             canvas.removeEventListener("pointerdown", onPointerDown)
             canvas.removeEventListener("pointerup", onPointerUp)
 
-            previewSwapColorButton.removeEventListener("click", swapColorPress)
+            swapColorButton.removeEventListener("click", swapColorPress)
+            downloadButton.removeEventListener("click", downloadPress)
 
             resolve()
         }
-
-        restartButton.addEventListener("click", restartPress)
 
         update()
     })
