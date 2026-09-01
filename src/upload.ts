@@ -12,6 +12,8 @@ function uploadSelectPress(): void {
 
 export function getImageUpload(): Promise<string> {
     return new Promise((resolve) => {
+        uploadedImage.removeAttribute("src")
+
         uploadSelectButton.addEventListener("click", uploadSelectPress)
 
         inputImage.onchange = () => {

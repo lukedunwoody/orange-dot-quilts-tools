@@ -29,4 +29,4 @@ async function main() {
     letUserPreview(normalizedImageData, pointsData.gridWidth, pointsData.gridHeight)
 }
 
-main()
+while (true) await main()
