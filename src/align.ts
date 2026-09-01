@@ -49,22 +49,22 @@ xGridAmtOutput.value = xGridAmt.toString()
 yGridAmtOutput.value = yGridAmt.toString()
 
 function xDecreasePress(): void {
-    xGridAmt = clamp(xGridAmt - 1, 2, 5)
+    xGridAmt = clamp(xGridAmt - 1, 1, 5)
     xGridAmtOutput.value = xGridAmt.toString()
 }
 
 function xIncreasePress(): void {
-    xGridAmt = clamp(xGridAmt + 1, 2, 5)
+    xGridAmt = clamp(xGridAmt + 1, 1, 5)
     xGridAmtOutput.value = xGridAmt.toString()
 }
 
 function yDecreasePress(): void {
-    yGridAmt = clamp(yGridAmt - 1, 2, 5)
+    yGridAmt = clamp(yGridAmt - 1, 1, 5)
     yGridAmtOutput.value = yGridAmt.toString()
 }
 
 function yIncreasePress(): void {
-    yGridAmt = clamp(yGridAmt + 1, 2, 5)
+    yGridAmt = clamp(yGridAmt + 1, 1, 5)
     yGridAmtOutput.value = yGridAmt.toString()
 }
 
