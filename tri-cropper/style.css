@@ -24,21 +24,24 @@
 @font-face {
     font-family: "DM Sans";
     src: url("../fonts/DMSans/DMSans-Black.woff2") format("woff2");
-    font-family: 900;
+    font-weight: 900;
 }
 
 :root {
     --accent-color: hsl(33, 95%, 55%);
+    --font-color: hsl(33, 20%, 20%);
 }
 
 body {
     background-color: #F2F2F2;
     margin: 0;
 
-    font-family: "DM Sans", "Nerd Icons";
+    font-family: "DM Sans", "Nerd Icons", sans-serif;
+    font-size: 1rem;
     font-weight: 500;
 }
 
+/* navbar */
 .navbar {
     background-color: white;
     height: 60px;
@@ -66,9 +69,6 @@ body {
     list-style-type: none;
     margin: 0;
     padding: 0;
-
-    font-weight: 500;
-    font-family: 11;
 }
 
 .navbar img {
@@ -89,4 +89,34 @@ body {
 .navbar a:active,
 .navbar a:focus-visible {
     opacity: 0.5;
+}
+
+/* main */
+main {
+    width: 40%;
+    min-width: min(576px, calc(100% - 80px));
+    max-width: 1152px;
+
+    padding: 0 40px;
+    margin: 0 auto;
+}
+
+main h1 {
+    margin-top: 48px;
+    margin-bottom: 0;
+
+    font-size: 3rem;
+    font-weight: 900;
+
+    text-align: center;
+    color: var(--font-color);
+}
+
+main p {
+    text-align: center;
+    color: var(--font-color);
+}
+
+main div {
+    padding: 20px 0;
 }
