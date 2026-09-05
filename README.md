@@ -1,4 +1,4 @@
-# Orange Dot Quilts Triangle Cropper
+# Orange Dot Quilts Tools
 
 ## Set Up Local Environment
 

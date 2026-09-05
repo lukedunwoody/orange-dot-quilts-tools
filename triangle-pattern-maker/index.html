@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tri Cropper</title>
+    <title>Triangle Quilt Pattern Maker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -17,13 +17,13 @@
         </nav>
 
         <main>
-            <h1>Tool Title</h1>
-            <p id="tool-description">Tool Description</p>
+            <h1>Triangle Quilt Pattern Maker</h1>
+            <p id="tool-description">Turn a photo of your triangle quilt block into a complete square quilt pattern.</p>
 
             <div class="steps" id="steps">
                 <section class="step is-active" data-step="upload">
                     <div class="upload" id="drop-zone">
-                        <button id="upload-select-button">  Choose Image</button>
+                        <button id="upload-select-button">  Choose Quilt</button>
                         <p id="drag-info">or drag and drop</p>
 
                         <input id="input-image" type="file" accept="image/*" hidden>
@@ -37,14 +37,14 @@
                         <p id="upload-status" data-status="empty"></p>
                         <div class="button-container">
                             <button id="upload-back-button" class="danger">Back</button>
-                            <button id="upload-finish-button" class="primary"> Finish</button>
+                            <button id="upload-finish-button" class="primary">Continue</button>
                         </div>
                     </div>
                 </section>
 
                 <section class="step" data-step="align" aria-hidden="true">
                     <div>
-                        <h3>Align Grid</h3>
+                        <h3>Line Up Your Quilt</h3>
                         <p>
                             Choose the amount of rows and columns to align, then move the circles to the area’s corners.
                             <br>
@@ -65,14 +65,14 @@
 
                         <div class="button-container">
                             <button id="align-swap-color" class="secondary">Swap Colors</button>
-                            <button id="align-finish-button" class="primary">Finish</button>
+                            <button id="align-finish-button" class="primary">Continue</button>
                         </div>
                     </div>
                 </section>
 
                 <section class="step" data-step="preview" aria-hidden="true">
                     <div>
-                        <h3>Results Preview</h3>
+                        <h3>Preview Your Pattern</h3>
                         <p>Click any triangle to preview what it would look like as a square pattern!</p>
 
                         <canvas id="preview-select-canvas"></canvas>
@@ -83,14 +83,14 @@
                         <canvas id="preview-complete-canvas"></canvas>
 
                         <div class="button-container">
-                            <button id="preview-download-button" class="primary">Download</button>
                             <button id="restart-button" class="danger">Restart</button>
+                            <button id="preview-download-button" class="primary">Download</button>
                         </div>
                     </div>
                 </section>
             </div>
         </main>
 
-        <script type="module" src="../src/tri-cropper/main.ts"></script>
+        <script type="module" src="../src/triangle-pattern-maker/main.ts"></script>
     </body>
 </html>
