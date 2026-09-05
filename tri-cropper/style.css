@@ -146,20 +146,23 @@ main p {
     margin-bottom: 48px;
 }
 
-main > div {
+.steps {
     box-sizing: border-box;
     width: 100%;
     background-color: var(--box-color);
     margin: 20px 0;
-    padding: var(--content-padding);
-    align-items: center;
     border-radius: var(--border-radius);
     border: 2px solid var(--border-color);
+}
 
+.step > div {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 0;
+    align-items: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    overflow: hidden;
 }
 
 main img {
@@ -249,16 +252,18 @@ button.increase {
 /* upload */
 div.upload {
     aspect-ratio: 2.88;
+    box-sizing: border-box;
+    min-height: 0;
 }
 
 #drop-zone {
     display: flex;
-    border: 2px dashed var(--border-color);
+    border: 0;
     transition: box-shadow 0.25s ease;
 }
 
 #drop-zone.dragover {
-    border: 2px solid var(--border-color);
+    border: 0;
     box-shadow: 0 0 16px var(--accent-color);
 }
 
@@ -294,4 +299,45 @@ div.upload {
 #preview-select-canvas,
 #preview-complete-canvas {
     margin-top: 0;
+}
+
+/* transitions */
+.steps {
+    position: relative;
+    height: auto;
+    transition: height 450ms ease;
+    overflow: hidden;
+}
+
+.steps.is-upload-step {
+    border-style: dashed;
+}
+
+.step {
+    position: absolute;
+    inset: 0 0 auto;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 0;
+    padding: var(--content-padding);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity 250ms ease,
+        visibility 0s linear 450ms;
+}
+
+.step.is-active {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    transition:
+        opacity 250ms ease 150ms,
+        visibility 0s linear 0s;
 }

@@ -20,64 +20,74 @@
             <h1>Tool Title</h1>
             <p id="tool-description">Tool Description</p>
 
-            <div class="upload" id="drop-zone">
-                <button id="upload-select-button">  Choose Image</button>
-                <p id="drag-info">or drag and drop</p>
+            <div class="steps" id="steps">
+                <section class="step is-active" data-step="upload">
+                    <div class="upload" id="drop-zone">
+                        <button id="upload-select-button">  Choose Image</button>
+                        <p id="drag-info">or drag and drop</p>
 
-                <input id="input-image" type="file" accept="image/*" hidden>
-            </div>
+                        <input id="input-image" type="file" accept="image/*" hidden>
+                    </div>
+                </section>
 
-            <div class="upload">
-                <h3>Selected image</h3>
-                <img id="uploaded-image" src="../assets/placeholder.png" alt="Uploaded image">
-                <p id="upload-status" data-status="empty"></p>
-                <div class="button-container">
-                    <button id="upload-back-button" class="danger">Back</button>
-                    <button id="upload-finish-button" class="primary"> Finish</button>
-                </div>
-            </div>
+                <section class="step" data-step="selected-image" aria-hidden="true">
+                    <div class="upload">
+                        <h3>Selected image</h3>
+                        <img id="uploaded-image" src="../assets/placeholder.png" alt="Uploaded image">
+                        <p id="upload-status" data-status="empty"></p>
+                        <div class="button-container">
+                            <button id="upload-back-button" class="danger">Back</button>
+                            <button id="upload-finish-button" class="primary"> Finish</button>
+                        </div>
+                    </div>
+                </section>
 
-            <div>
-                <h3>Align Grid</h3>
-                <p>
-                    Choose the amount of rows and columns to align, then move the circles to the area’s corners.
-                    <br>
-                    You can use the full pattern or test a custom section with only a few squares.
-                </p>
+                <section class="step" data-step="align" aria-hidden="true">
+                    <div>
+                        <h3>Align Grid</h3>
+                        <p>
+                            Choose the amount of rows and columns to align, then move the circles to the area’s corners.
+                            <br>
+                            You can use the full pattern or test a custom section with only a few squares.
+                        </p>
 
-                <div class="button-container">
-                    <button id="decrease-x" class="decrease">-</button>
-                    <output id="amt-x-grid" for="decrease-x increase-x">3</output>
-                    <button id="increase-x" class="increase">+</button>
+                        <div class="button-container">
+                            <button id="decrease-x" class="decrease">-</button>
+                            <output id="amt-x-grid" for="decrease-x increase-x">3</output>
+                            <button id="increase-x" class="increase">+</button>
 
-                    <button id="decrease-y" class="decrease">-</button>
-                    <output id="amt-y-grid" for="decrease-y increase-y">3</output>
-                    <button id="increase-y" class="increase">+</button>
-                </div>
+                            <button id="decrease-y" class="decrease">-</button>
+                            <output id="amt-y-grid" for="decrease-y increase-y">3</output>
+                            <button id="increase-y" class="increase">+</button>
+                        </div>
 
-                <canvas id="align-canvas"></canvas>
+                        <canvas id="align-canvas"></canvas>
 
-                <div class="button-container">
-                    <button id="align-swap-color" class="secondary">Swap Colors</button>
-                    <button id="align-finish-button" class="primary">Finish</button>
-                </div>
-            </div>
+                        <div class="button-container">
+                            <button id="align-swap-color" class="secondary">Swap Colors</button>
+                            <button id="align-finish-button" class="primary">Finish</button>
+                        </div>
+                    </div>
+                </section>
 
-            <div>
-                <h3>Results Preview</h3>
-                <p>Click any triangle to preview what it would look like as a square pattern!</p>
+                <section class="step" data-step="preview" aria-hidden="true">
+                    <div>
+                        <h3>Results Preview</h3>
+                        <p>Click any triangle to preview what it would look like as a square pattern!</p>
 
-                <canvas id="preview-select-canvas"></canvas>
+                        <canvas id="preview-select-canvas"></canvas>
 
-                <button id="preview-swap-color" class="secondary">Swap Colors</button>
-                <p>Complete Pattern:</p>
+                        <button id="preview-swap-color" class="secondary">Swap Colors</button>
+                        <p>Complete Pattern:</p>
 
-                <canvas id="preview-complete-canvas"></canvas>
+                        <canvas id="preview-complete-canvas"></canvas>
 
-                <div class="button-container">
-                    <button id="preview-download-button" class="primary">Download</button>
-                    <button id="restart-button" class="danger">Restart</button>
-                </div>
+                        <div class="button-container">
+                            <button id="preview-download-button" class="primary">Download</button>
+                            <button id="restart-button" class="danger">Restart</button>
+                        </div>
+                    </div>
+                </section>
             </div>
         </main>
 

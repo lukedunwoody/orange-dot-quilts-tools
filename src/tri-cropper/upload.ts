@@ -1,4 +1,5 @@
 // Step One Helper
+import { showStep } from "./steps";
 
 const dropZone = document.getElementById("drop-zone") as HTMLDivElement;
 const inputImage = document.getElementById("input-image") as HTMLInputElement
@@ -6,12 +7,14 @@ const uploadedImage = document.getElementById("uploaded-image") as HTMLImageElem
 const uploadStatus = document.getElementById("upload-status") as HTMLParagraphElement
 const uploadSelectButton = document.getElementById("upload-select-button") as HTMLButtonElement
 const uploadFinishButton = document.getElementById("upload-finish-button") as HTMLButtonElement
+const UploadBackButton = document.getElementById("upload-back-button") as HTMLButtonElement
 
 function inputImageChange(): void {
     const file = inputImage.files?.[0]
 
     if (file) {
         uploadedImage.src = URL.createObjectURL(file)
+        showStep("selected-image")
     }
 }
 
@@ -32,11 +35,11 @@ function drop(e: DragEvent): void {
     e.preventDefault()
     dropZone.classList.remove("dragover")
 
-    const file = e.dataTransfer?.files?.[0]
+    inputImageChange()
+}
 
-    if (file) {
-        uploadedImage.src = URL.createObjectURL(file)
-    }
+function backButtonPress(): void {
+    showStep("upload")
 }
 
 export function getImageUpload(): Promise<string> {
@@ -49,6 +52,7 @@ export function getImageUpload(): Promise<string> {
         dropZone.addEventListener("click", click)
 
         uploadSelectButton.addEventListener("click", click)
+        UploadBackButton.addEventListener("click", backButtonPress)
         inputImage.addEventListener("change", inputImageChange)
 
         uploadFinishButton.onclick = () => {
@@ -64,6 +68,7 @@ export function getImageUpload(): Promise<string> {
                 dropZone.removeEventListener("click", click)
 
                 uploadSelectButton.removeEventListener("click", click)
+                UploadBackButton.removeEventListener("click", backButtonPress)
                 inputImage.removeEventListener("change", inputImageChange)
 
                 resolve(imageUrl)

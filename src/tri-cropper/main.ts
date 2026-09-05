@@ -1,5 +1,6 @@
 import type { PointsData } from "./types"
 import { urlToImage, imageToImageData } from "./imageUtils"
+import { showStep } from "./steps"
 
 import { getImageUpload } from "./upload"
 import { getAlignedCorners } from "./align"
@@ -10,9 +11,11 @@ const PX_PER_GRID = 250
 
 async function main() {
     // Step 1
+    showStep("upload")
     const imageUrl: string = await getImageUpload()
 
     // Step 2
+    showStep("align")
     const pointsData: PointsData = await getAlignedCorners(imageUrl)
 
     // Step 3
@@ -26,7 +29,8 @@ async function main() {
         pointsData.gridHeight * PX_PER_GRID
     )
 
-    letUserPreview(normalizedImageData, pointsData.gridWidth, pointsData.gridHeight)
+    showStep("preview")
+    await letUserPreview(normalizedImageData, pointsData.gridWidth, pointsData.gridHeight)
 }
 
 while (true) await main()
