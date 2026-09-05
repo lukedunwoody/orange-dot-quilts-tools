@@ -1,5 +1,6 @@
 // Step Three Helper
 
+import { getCanvasPoint } from "./canvasUtils"
 import { getPixelColor, setPixelColor } from "./imageUtils"
 import type { Point, RGBA } from "./types"
 
@@ -49,8 +50,10 @@ let mouseDown: boolean = false
 let mouseDownLast: boolean = false
 
 function onPointerMove(e: PointerEvent) {
-    mouseX = e.offsetX
-    mouseY = e.offsetY
+    const point = getCanvasPoint(canvas, e)
+
+    mouseX = point.x
+    mouseY = point.y
 }
 
 function onPointerDown() {
@@ -396,6 +399,18 @@ function drawSqaurePattern(imageData: ImageData, pxPerGrid: number): void {
     }
 }
 
+const placeholderImage = new Image()
+
+placeholderImage.onload = () => {
+    completeTX.drawImage(
+        placeholderImage,
+        0,
+        0,
+        completeCanvas.width,
+        completeCanvas.height
+    )
+}
+
 export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number, yGridAmt: number): Promise<void> {
     return new Promise((resolve) => {
         const imageW = normalizedImageData.width
@@ -419,6 +434,8 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
         swapColorButton.addEventListener("click", swapColorPress)
         downloadButton.addEventListener("click", downloadPress)
         restartButton.addEventListener("click", restartPress)
+
+        placeholderImage.src = "../assets/placeholder.png"
 
         let completeFunctionWorking = false
         let previewImageGenerated = false

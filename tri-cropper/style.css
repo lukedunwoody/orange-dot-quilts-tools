@@ -1,3 +1,19 @@
+/* vars */
+:root {
+    --border-radius: 6px;
+    --content-padding: 12px;
+
+    --accent-color: #F9971F;
+    --border-color: #FBBA6A;
+    --box-color: #FEF3E6;
+    --font-color: #393128;
+
+    --danger-color: #D94141;
+    --primary-color: #41D95B;
+    --secondary-color: #417ED9;
+}
+
+/* fonts */
 @font-face {
     font-family: "Nerd Icons";
     src: url("../fonts/NerdIcons.woff2") format("woff2");
@@ -27,11 +43,6 @@
     font-weight: 900;
 }
 
-:root {
-    --accent-color: hsl(33, 95%, 55%);
-    --font-color: hsl(33, 20%, 20%);
-}
-
 body {
     background-color: #F2F2F2;
     margin: 0;
@@ -43,9 +54,13 @@ body {
 
 /* navbar */
 .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
     background-color: white;
-    height: 60px;
-    padding: 0 18px;
+    height: 64px;
+    padding: 0 24px;
     box-shadow: 0 0 20px rgb(0 0 0 / 25%);
 }
 
@@ -80,6 +95,7 @@ body {
 .navbar a {
     color: black;
     text-decoration: none;
+    transition: opacity 0.25s ease;
 }
 
 .navbar a:hover {
@@ -94,7 +110,7 @@ body {
 /* main */
 main {
     width: 40%;
-    min-width: min(576px, calc(100% - 80px));
+    min-width: min(864px, calc(100% - 80px));
     max-width: 1152px;
 
     padding: 0 40px;
@@ -103,7 +119,7 @@ main {
 
 main h1 {
     margin-top: 48px;
-    margin-bottom: 0;
+    margin-bottom: 8px;
 
     font-size: 3rem;
     font-weight: 900;
@@ -112,11 +128,170 @@ main h1 {
     color: var(--font-color);
 }
 
-main p {
+main h3 {
+    margin: 0;
     text-align: center;
     color: var(--font-color);
 }
 
-main div {
-    padding: 20px 0;
+main p {
+    margin-top: 6px;
+    margin-bottom: var(--content-padding);
+    text-align: center;
+    color: var(--font-color);
+}
+
+#tool-description {
+    margin-top: 0;
+    margin-bottom: 48px;
+}
+
+main > div {
+    box-sizing: border-box;
+    width: 100%;
+    background-color: var(--box-color);
+    margin: 20px 0;
+    padding: var(--content-padding);
+    align-items: center;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+main img {
+    display: block;
+    margin: var(--content-padding) auto;
+    max-width: 80%;
+    object-fit: contain;
+    flex: 1 1 auto;
+    min-height: 0;
+    border-radius: var(--border-radius);
+}
+
+main canvas {
+    margin: var(--content-padding);
+    width: 80%;
+    height: auto;
+    border-radius: var(--border-radius);
+}
+
+/* buttons */
+.button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+button {
+    font-family: "DM Sans", "Nerd Icons", sans-serif;
+    font-size: 1rem;
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    transition: opacity 0.25s ease;
+}
+
+button:hover {
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+button:active {
+    opacity: 0.5;
+}
+
+button.primary,
+button.secondary,
+button.danger {
+    width: 15%;
+    margin: 0 8px;
+    aspect-ratio: 3.75;
+}
+
+button.primary {
+    background-color: var(--primary-color)
+}
+
+button.secondary {
+    background-color: var(--secondary-color)
+}
+
+button.danger {
+    background-color: var(--danger-color)
+}
+
+button.decrease,
+button.increase {
+    width: calc(15% / 3.75);
+    aspect-ratio: 1;
+}
+
+button.decrease {
+    background-color: var(--danger-color);
+    margin-left: calc(15% / 3.75 / 2);
+    margin-right: calc(15% / 3.75 / 4);
+}
+
+button.increase {
+    background-color: var(--primary-color);
+    margin-right: calc(15% / 3.75 / 2);
+    margin-left: calc(15% / 3.75 / 4);
+}
+
+/* upload */
+div.upload {
+    aspect-ratio: 2.88;
+}
+
+#drop-zone {
+    display: flex;
+    border: 2px dashed var(--border-color);
+    transition: box-shadow 0.25s ease;
+}
+
+#drop-zone.dragover {
+    border: 2px solid var(--border-color);
+    box-shadow: 0 0 16px var(--accent-color);
+}
+
+#drop-zone:hover {
+    cursor: pointer;
+}
+
+#drag-info {
+    font-size: 0.8rem;
+    margin-top: 6px;
+    margin-bottom: 0;
+    opacity: 0.5;
+}
+
+#upload-status {
+    color: var(--danger-color);
+    margin-top: 0;
+    margin-bottom: var(--content-padding);
+}
+
+#upload-status:empty {
+    display: none;
+}
+
+#upload-select-button {
+    box-shadow: 0 0 8px var(--accent-color);
+    margin-top: 6px;
+    background-color: var(--accent-color);
+    height: 45px;
+    aspect-ratio: 5;
+}
+
+#preview-select-canvas,
+#preview-complete-canvas {
+    margin-top: 0;
 }

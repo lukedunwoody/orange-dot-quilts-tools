@@ -18,51 +18,66 @@
 
         <main>
             <h1>Tool Title</h1>
-            <p>Tool Description</p>
+            <p id="tool-description">Tool Description</p>
 
-            <div>
-                <h2>Step 1: Image Upload</h2>
-                <p>Choose the desired image and press the finish button when done.</p>
+            <div class="upload" id="drop-zone">
+                <button id="upload-select-button">  Choose Image</button>
+                <p id="drag-info">or drag and drop</p>
 
                 <input id="input-image" type="file" accept="image/*" hidden>
-                <button id="upload-select-button">Choose Image</button>
+            </div>
 
-                <h3>Selected image:</h3>
-                <img id="uploaded-image" alt="Uploaded image">
+            <div class="upload">
+                <h3>Selected image</h3>
+                <img id="uploaded-image" src="../assets/placeholder.png" alt="Uploaded image">
                 <p id="upload-status" data-status="empty"></p>
-                <button id="upload-finish-button">Finish</button>
+                <div class="button-container">
+                    <button id="upload-back-button" class="danger">Back</button>
+                    <button id="upload-finish-button" class="primary"> Finish</button>
+                </div>
             </div>
 
             <div>
-                <h2>Step 2: Align Grid</h2>
-                <p>Pick the amount of rows and columns in the pattern and align the cicrcles with the corners of the quilt.</p>
+                <h3>Align Grid</h3>
+                <p>
+                    Choose the amount of rows and columns to align, then move the circles to the area’s corners.
+                    <br>
+                    You can use the full pattern or test a custom section with only a few squares.
+                </p>
 
-                <button id="decrease-x">-</button>
-                <output id="amt-x-grid" for="decrease-x increase-x">3</output>
-                <button id="increase-x">+</button>
+                <div class="button-container">
+                    <button id="decrease-x" class="decrease">-</button>
+                    <output id="amt-x-grid" for="decrease-x increase-x">3</output>
+                    <button id="increase-x" class="increase">+</button>
 
-                <button id="decrease-y">-</button>
-                <output id="amt-y-grid" for="decrease-y increase-y">3</output>
-                <button id="increase-y">+</button>
-
-                <button id="align-swap-color">Swap Colors</button>
+                    <button id="decrease-y" class="decrease">-</button>
+                    <output id="amt-y-grid" for="decrease-y increase-y">3</output>
+                    <button id="increase-y" class="increase">+</button>
+                </div>
 
                 <canvas id="align-canvas"></canvas>
-                <button id="align-finish-button">Finish</button>
+
+                <div class="button-container">
+                    <button id="align-swap-color" class="secondary">Swap Colors</button>
+                    <button id="align-finish-button" class="primary">Finish</button>
+                </div>
             </div>
 
             <div>
-                <h2>Step 3: Results Preview</h2>
+                <h3>Results Preview</h3>
                 <p>Click any triangle to preview what it would look like as a square pattern!</p>
 
-                <button id="preview-swap-color">Swap Colors</button>
-
                 <canvas id="preview-select-canvas"></canvas>
-                <canvas id="preview-complete-canvas"></canvas>
-                <button id="preview-download-button">Download</button>
 
-                <p>Click the button to restart!</p>
-                <button id="restart-button">Restart</button>
+                <button id="preview-swap-color" class="secondary">Swap Colors</button>
+                <p>Complete Pattern:</p>
+
+                <canvas id="preview-complete-canvas"></canvas>
+
+                <div class="button-container">
+                    <button id="preview-download-button" class="primary">Download</button>
+                    <button id="restart-button" class="danger">Restart</button>
+                </div>
             </div>
         </main>
 

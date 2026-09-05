@@ -1,13 +1,14 @@
 // Step Two Helper
 
-import { urlToImage } from "./imageUtils.js"
-import type { Point, PointsData } from "./types.js"
+import { getCanvasPoint } from "./canvasUtils"
+import { urlToImage } from "./imageUtils"
+import type { Point, PointsData } from "./types"
 
 // UI Appearance Config (percent of width)
 const CIRCLE_START_OFFSET: number     = 0.125
-const CIRCLE_DRAW_RADIUS: number      = 0.008
+const CIRCLE_DRAW_RADIUS: number      = 0.020
 const CIRCLE_HITBOX_RADIUS: number    = CIRCLE_DRAW_RADIUS * 3
-const CIRCLE_PRECISE_RADIUS: number   = CIRCLE_DRAW_RADIUS / 5
+const CIRCLE_PRECISE_RADIUS: number   = CIRCLE_DRAW_RADIUS / 8
 
 const CIRCLE_ACTIVE_COLORS: string[]  = ["#FFFFFF88", "#00000088"]
 const CIRCLE_HOVER_COLORS: string[]   = ["#888888BB", "#888888BB"]
@@ -99,8 +100,10 @@ let mouseDiffY: number = 0
 let mouseDown: boolean = false
 
 function onPointerMove(e: PointerEvent) {
-    mouseX = e.offsetX
-    mouseY = e.offsetY
+    const point = getCanvasPoint(canvas, e)
+
+    mouseX = point.x
+    mouseY = point.y
 }
 
 function onPointerDown() {
