@@ -205,7 +205,10 @@ main p {
 
     position: relative;
     height: auto;
-    transition: height 450ms ease;
+    transition:
+        height 450ms ease,
+        box-shadow 250ms ease;
+    overflow: hidden;
 }
 
 .steps.is-upload-step {
@@ -215,6 +218,7 @@ main p {
 .steps.is-upload-step:has(#drop-zone.dragover) {
     border-style: solid;
     border-color: var(--border-color);
+    box-shadow: 0 0 16px var(--accent-color);
 }
 
 .step {
@@ -362,7 +366,6 @@ div.upload {
 
 #drop-zone.dragover {
     border: 0;
-    box-shadow: 0 0 16px var(--accent-color);
 }
 
 #drop-zone:hover {
