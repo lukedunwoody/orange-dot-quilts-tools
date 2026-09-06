@@ -98,20 +98,51 @@ let mouseLastY: number = 0
 let mouseDiffX: number = 0
 let mouseDiffY: number = 0
 let mouseDown: boolean = false
+let activePointerId: number | null = null
+let activeCircle: Circle | null = null
+let pointerTargetPending = false
+let pointerTargetX = 0
+let pointerTargetY = 0
 
 function onPointerMove(e: PointerEvent) {
+    if (activePointerId !== null && e.pointerId !== activePointerId) return
+
     const point = getCanvasPoint(canvas, e)
 
     mouseX = point.x
     mouseY = point.y
 }
 
-function onPointerDown() {
+function onPointerDown(e: PointerEvent) {
+    if (activePointerId !== null) return
+    if (e.pointerType === "mouse" && e.button !== 0) return
+
+    const point = getCanvasPoint(canvas, e)
+
+    mouseX = point.x
+    mouseY = point.y
+    mouseLastX = point.x
+    mouseLastY = point.y
     mouseDown = true
+    activePointerId = e.pointerId
+    pointerTargetPending = true
+    pointerTargetX = point.x
+    pointerTargetY = point.y
+
+    canvas.setPointerCapture(e.pointerId)
 }
 
-function onPointerUp() {
+function onPointerUp(e: PointerEvent) {
+    if (activePointerId !== e.pointerId) return
+
+    if (canvas.hasPointerCapture(e.pointerId)) {
+        canvas.releasePointerCapture(e.pointerId)
+    }
+
     mouseDown = false
+    activePointerId = null
+    activeCircle = null
+    pointerTargetPending = false
 }
 
 // Util Functions
@@ -291,6 +322,7 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
         canvas.addEventListener("pointermove", onPointerMove)
         canvas.addEventListener("pointerdown", onPointerDown)
         canvas.addEventListener("pointerup", onPointerUp)
+        canvas.addEventListener("pointercancel", onPointerUp)
 
         // Functions
         function updateMouseDiff(): void {
@@ -301,23 +333,53 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
             mouseLastY = mouseY
         }
 
-        function updateCircles(): void {
-            const hitboxRadius = CIRCLE_HITBOX_RADIUS * imageW
+        function getHitboxRadius(): number {
+            const canvasWidth = canvas.getBoundingClientRect().width
+            const minimumTouchRadius = canvasWidth > 0
+                ? 22 * (imageW / canvasWidth)
+                : 0
+
+            return Math.max(CIRCLE_HITBOX_RADIUS * imageW, minimumTouchRadius)
+        }
+
+        function findCircleAtPointer(pointX: number, pointY: number): Circle | null {
+            const hitboxRadius = getHitboxRadius()
+            let closestCircle: Circle | null = null
+            let closestDistance = Number.POSITIVE_INFINITY
 
             for (const circle of circlePositions) {
-                const isUnderPointer = (
-                    Math.abs(mouseX - circle.location.x) < hitboxRadius
-                    && Math.abs(mouseY - circle.location.y) < hitboxRadius
+                const distance = Math.hypot(
+                    pointX - circle.location.x,
+                    pointY - circle.location.y
                 )
 
-                if (circle.state === "active" && mouseDown) {
-                    continue
+                if (distance <= hitboxRadius && distance < closestDistance) {
+                    closestCircle = circle
+                    closestDistance = distance
                 }
+            }
 
-                if (isUnderPointer && !mouseDown) {
-                    circle.state = "hover"
-                } else if (isUnderPointer && mouseDown && circle.state === "hover") {
+            return closestCircle
+        }
+
+        function updateCircles(): void {
+            if (pointerTargetPending) {
+                activeCircle = findCircleAtPointer(pointerTargetX, pointerTargetY)
+                pointerTargetPending = false
+            }
+
+            const hitboxRadius = getHitboxRadius()
+
+            for (const circle of circlePositions) {
+                const isUnderPointer = Math.hypot(
+                    mouseX - circle.location.x,
+                    mouseY - circle.location.y
+                ) <= hitboxRadius
+
+                if (circle === activeCircle && mouseDown) {
                     circle.state = "active"
+                } else if (isUnderPointer && !mouseDown) {
+                    circle.state = "hover"
                 } else {
                     circle.state = "passive"
                 }
@@ -325,7 +387,7 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
         }
 
         function update(): void {
-            ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
             ctx.drawImage(image, 0, 0)
             updateMouseDiff()
             updateCircles()
@@ -334,6 +396,10 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
                 if (circle.state === "active") {
                     circle.location.x -= mouseDiffX
                     circle.location.y -= mouseDiffY
+
+                    // Keep handle centers one pixel inside the image bounds.
+                    circle.location.x = clamp(circle.location.x, 1, imageW - 1)
+                    circle.location.y = clamp(circle.location.y, 1, imageH - 1)
                 }
             }
 
@@ -357,6 +423,15 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
             canvas.removeEventListener("pointermove", onPointerMove)
             canvas.removeEventListener("pointerdown", onPointerDown)
             canvas.removeEventListener("pointerup", onPointerUp)
+            canvas.removeEventListener("pointercancel", onPointerUp)
+
+            if (activePointerId !== null && canvas.hasPointerCapture(activePointerId)) {
+                canvas.releasePointerCapture(activePointerId)
+            }
+            mouseDown = false
+            activePointerId = null
+            activeCircle = null
+            pointerTargetPending = false
 
             const returnPoints: [Point, Point, Point, Point] = circlePositions.map(circle => ({
                 x: circle.location.x / imageW,

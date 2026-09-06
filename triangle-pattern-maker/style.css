@@ -45,6 +45,7 @@
 
 body {
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 
@@ -102,6 +103,21 @@ body {
     transition: opacity 0.25s ease;
 }
 
+.nav-label-short {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .nav-label-full {
+        display: none;
+    }
+
+    .nav-label-short {
+        display: inline;
+        font-size: 1.5rem;
+    }
+}
+
 .navbar a:hover {
     opacity: 0.7;
 }
@@ -113,6 +129,8 @@ body {
 
 /* footer */
 footer {
+    box-sizing: border-box;
+    flex: 0 0 64px;
     height: 64px;
     padding: 0 24px;
     display: grid;
@@ -121,7 +139,6 @@ footer {
 
 footer p {
     color: color-mix(in srgb, var(--font-color) 60%, transparent);
-    text-align: center;
 }
 
 footer a {
@@ -136,7 +153,7 @@ footer a:hover {
 
 /* main */
 main {
-    flex: 1;
+    flex: 1 0 auto;
 
     width: 40%;
     min-width: min(864px, calc(100% - 80px));
@@ -150,7 +167,7 @@ main h1 {
     margin-top: 48px;
     margin-bottom: 8px;
 
-    font-size: 3rem;
+    font-size: clamp(1.25rem, 5vw, 3rem);
     font-weight: 900;
 
     text-align: center;
@@ -163,10 +180,14 @@ main h3 {
     color: var(--font-color);
 }
 
+p {
+    text-align: center;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+}
+
 main p {
     margin-top: 6px;
     margin-bottom: var(--content-padding);
-    text-align: center;
     color: var(--font-color);
 }
 
@@ -208,6 +229,11 @@ main canvas {
     width: 80%;
     height: auto;
     border-radius: var(--border-radius);
+
+    /* Keep single-finger interaction on the canvas while allowing pinch zoom. */
+    touch-action: pinch-zoom;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* buttons */
@@ -223,7 +249,7 @@ main canvas {
 
 button {
     font-family: "DM Sans", "Nerd Icons", sans-serif;
-    font-size: 1rem;
+    font-size: clamp(0.8rem, 2vw, 1rem);
     color: white;
     border: none;
     border-radius: var(--border-radius);
@@ -242,7 +268,7 @@ button:active {
 button.primary,
 button.secondary,
 button.danger {
-    width: 15%;
+    width: max(15%, 96px);
     margin: 0 8px;
     aspect-ratio: 3.75;
 }
@@ -261,7 +287,7 @@ button.danger {
 
 button.decrease,
 button.increase {
-    width: calc(15% / 3.75);
+    width: max(calc(15% / 3.75), calc(96px / 3.75));
     aspect-ratio: 1;
 }
 
@@ -281,7 +307,7 @@ button.increase {
 div.upload {
     aspect-ratio: 2.88;
     box-sizing: border-box;
-    min-height: 0;
+    min-height: 240px;
 }
 
 #drop-zone {
@@ -320,7 +346,7 @@ div.upload {
     box-shadow: 0 0 8px var(--accent-color);
     margin-top: 6px;
     background-color: var(--accent-color);
-    height: 45px;
+    height: clamp(38px, 8vw, 45px);
     aspect-ratio: 5;
 }
 

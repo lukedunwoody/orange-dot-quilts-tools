@@ -5,17 +5,18 @@ const dropZone = document.getElementById("drop-zone") as HTMLDivElement;
 const inputImage = document.getElementById("input-image") as HTMLInputElement
 const uploadedImage = document.getElementById("uploaded-image") as HTMLImageElement
 const uploadStatus = document.getElementById("upload-status") as HTMLParagraphElement
-const uploadSelectButton = document.getElementById("upload-select-button") as HTMLButtonElement
 const uploadFinishButton = document.getElementById("upload-finish-button") as HTMLButtonElement
 const UploadBackButton = document.getElementById("upload-back-button") as HTMLButtonElement
 
-function inputImageChange(): void {
-    const file = inputImage.files?.[0]
+function setImage(file: File | undefined): void {
+    if (!file || !file.type.startsWith("image/")) return
 
-    if (file) {
-        uploadedImage.src = URL.createObjectURL(file)
-        showStep("selected-image")
-    }
+    uploadedImage.src = URL.createObjectURL(file)
+    showStep("selected-image")
+}
+
+function inputImageChange(): void {
+    setImage(inputImage.files?.[0])
 }
 
 function click(): void {
@@ -35,7 +36,7 @@ function drop(e: DragEvent): void {
     e.preventDefault()
     dropZone.classList.remove("dragover")
 
-    inputImageChange()
+    setImage(e.dataTransfer?.files[0])
 }
 
 function backButtonPress(): void {
@@ -51,7 +52,6 @@ export function getImageUpload(): Promise<string> {
         dropZone.addEventListener("drop", drop)
         dropZone.addEventListener("click", click)
 
-        uploadSelectButton.addEventListener("click", click)
         UploadBackButton.addEventListener("click", backButtonPress)
         inputImage.addEventListener("change", inputImageChange)
 
@@ -67,7 +67,6 @@ export function getImageUpload(): Promise<string> {
                 dropZone.removeEventListener("drop", drop)
                 dropZone.removeEventListener("click", click)
 
-                uploadSelectButton.removeEventListener("click", click)
                 UploadBackButton.removeEventListener("click", backButtonPress)
                 inputImage.removeEventListener("change", inputImageChange)
 

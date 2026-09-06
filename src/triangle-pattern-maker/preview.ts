@@ -47,21 +47,43 @@ function swapColorPress(): void {
 let mouseX: number = 0
 let mouseY: number = 0
 let mouseDown: boolean = false
-let mouseDownLast: boolean = false
+let activePointerId: number | null = null
+let previewSelectionPending: boolean = false
 
 function onPointerMove(e: PointerEvent) {
+    if (activePointerId !== null && e.pointerId !== activePointerId) return
+
     const point = getCanvasPoint(canvas, e)
 
     mouseX = point.x
     mouseY = point.y
 }
 
-function onPointerDown() {
+function onPointerDown(e: PointerEvent) {
+    if (activePointerId !== null) return
+    if (e.pointerType === "mouse" && e.button !== 0) return
+
+    const point = getCanvasPoint(canvas, e)
+
+    // A tap may not generate a move first, so always use its coordinates.
+    mouseX = point.x
+    mouseY = point.y
     mouseDown = true
+    activePointerId = e.pointerId
+    previewSelectionPending = true
+
+    canvas.setPointerCapture(e.pointerId)
 }
 
-function onPointerUp() {
+function onPointerUp(e: PointerEvent) {
+    if (activePointerId !== e.pointerId) return
+
+    if (canvas.hasPointerCapture(e.pointerId)) {
+        canvas.releasePointerCapture(e.pointerId)
+    }
+
     mouseDown = false
+    activePointerId = null
 }
 
 // Util Functions
@@ -215,11 +237,21 @@ function drawTriGrid(
     }
 }
 
-function getTriData(pxPerGrid: number): TriData {
-    // Determine row and column
+function getTriData(
+    pxPerGrid: number,
+    imageOffset: number,
+    xGridAmt: number,
+    yGridAmt: number
+): TriData {
+    const imageW = pxPerGrid * xGridAmt
+    const imageH = pxPerGrid * yGridAmt
+    const imageX = Math.min(Math.max(mouseX - imageOffset, 0), imageW - Number.EPSILON)
+    const imageY = Math.min(Math.max(mouseY - imageOffset, 0), imageH - Number.EPSILON)
+
+    // Determine row and column inside the image, not the canvas border.
     const gridCords: Point = {
-        x: Math.floor(mouseX / pxPerGrid),
-        y: Math.floor(mouseY / pxPerGrid)
+        x: Math.floor(imageX / pxPerGrid),
+        y: Math.floor(imageY / pxPerGrid)
     }
 
     // Determine corner cords of grid square
@@ -249,8 +281,8 @@ function getTriData(pxPerGrid: number): TriData {
 
     // Determine mouse cords as percentage inside grid
     const relativeCords: Point = {
-        x: (mouseX - cornerCords[0]!.x) / pxPerGrid,
-        y: (mouseY - cornerCords[0]!.y) / pxPerGrid
+        x: (imageX - cornerCords[0]!.x) / pxPerGrid,
+        y: (imageY - cornerCords[0]!.y) / pxPerGrid
     }
 
     const nOfNW = relativeCords.x > relativeCords.y
@@ -427,9 +459,16 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
         completeCanvas.width  = pxPerGrid * X_OUTPUT_MULT
         completeCanvas.height = pxPerGrid * Y_OUTPUT_MULT
 
+        mouseX = 0
+        mouseY = 0
+        mouseDown = false
+        activePointerId = null
+        previewSelectionPending = false
+
         canvas.addEventListener("pointermove", onPointerMove)
         canvas.addEventListener("pointerdown", onPointerDown)
         canvas.addEventListener("pointerup", onPointerUp)
+        canvas.addEventListener("pointercancel", onPointerUp)
 
         swapColorButton.addEventListener("click", swapColorPress)
         downloadButton.addEventListener("click", downloadPress)
@@ -443,7 +482,7 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
         async function update(): Promise<void> {
             ctx.putImageData(normalizedImageData, imageOffset, imageOffset)
 
-            const triData = getTriData(pxPerGrid)
+            const triData = getTriData(pxPerGrid, imageOffset, xGridAmt, yGridAmt)
 
             drawHover(triData, imageOffset)
             drawTriGrid(
@@ -452,7 +491,8 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
                 xGridAmt, yGridAmt
             )
 
-            if (mouseDown && !mouseDownLast && !completeFunctionWorking) {
+            if (previewSelectionPending && !completeFunctionWorking) {
+                previewSelectionPending = false
                 completeFunctionWorking = true
                 try {
                     const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triData, pxPerGrid)
@@ -462,8 +502,6 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
                     completeFunctionWorking = false
                 }
             }
-
-            mouseDownLast = mouseDown
 
             requestAnimationFrame(update)
         }
@@ -495,6 +533,14 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
             canvas.removeEventListener("pointermove", onPointerMove)
             canvas.removeEventListener("pointerdown", onPointerDown)
             canvas.removeEventListener("pointerup", onPointerUp)
+            canvas.removeEventListener("pointercancel", onPointerUp)
+
+            if (activePointerId !== null && canvas.hasPointerCapture(activePointerId)) {
+                canvas.releasePointerCapture(activePointerId)
+            }
+            mouseDown = false
+            activePointerId = null
+            previewSelectionPending = false
 
             swapColorButton.removeEventListener("click", swapColorPress)
             downloadButton.removeEventListener("click", downloadPress)
