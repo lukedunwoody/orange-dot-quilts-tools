@@ -25,6 +25,14 @@ export function showStep(stepName: string): void {
     if (!stepsContainer || !nextStep) return
 
     const previousStep = activeStep
+    const shouldMoveFocus = previousStep !== null
+        && previousStep.contains(document.activeElement)
+
+    // Do not leave focus inside a section before marking it aria-hidden.
+    if (shouldMoveFocus && document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+    }
+
     activeStep = nextStep
 
     stepsContainer.classList.toggle("is-upload-step", stepName === "upload")
@@ -47,6 +55,19 @@ export function showStep(stepName: string): void {
                 behavior: "smooth",
                 block: "start"
             })
+        }
+
+        if (shouldMoveFocus) {
+            const focusTarget = nextStep.querySelector<HTMLElement>(
+                "button, input, select, textarea, a[href], [tabindex]:not([tabindex=\"-1\"])"
+            )
+
+            if (focusTarget) {
+                focusTarget.focus({ preventScroll: true })
+            } else {
+                nextStep.setAttribute("tabindex", "-1")
+                nextStep.focus({ preventScroll: true })
+            }
         }
     })
 }
