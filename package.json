@@ -1,8 +1,8 @@
 {
-    "name": "odq-tri-cropper",
+    "name": "orange-dot-quilts-tools",
     "version": "0.1.0",
-    "description": "Triangle Cropper",
-    "private": true,
+    "description": "Free, easy-to-use quilting tools from Orange Dot Quilts.",
+    "private": false,
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -11,15 +11,15 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/lukedunwoody/odq-tri-cropper.git"
+        "url": "https://github.com/lukedunwoody/orange-dot-quilts-tools.git"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/lukedunwoody/odq-tri-cropper/issues"
+        "url": "https://github.com/lukedunwoody/orange-dot-quilts-tools/issues"
     },
-    "homepage": "https://github.com/lukedunwoody/odq-tri-cropper#readme",
+    "homepage": "https://github.com/lukedunwoody/orange-dot-quilts-tools",
     "devDependencies": {
         "typescript": "^7.0.2",
         "vite": "^8.2.2"
