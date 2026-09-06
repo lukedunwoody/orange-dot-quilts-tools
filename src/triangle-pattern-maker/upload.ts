@@ -45,7 +45,7 @@ function backButtonPress(): void {
 
 export function getImageUpload(): Promise<string> {
     return new Promise((resolve) => {
-        uploadedImage.src = "../assets/placeholder.png"
+        uploadedImage.src = "/images/placeholder.png"
 
         dropZone.addEventListener("dragover", dragOver)
         dropZone.addEventListener("dragleave", dragLeave)
@@ -58,7 +58,7 @@ export function getImageUpload(): Promise<string> {
         uploadFinishButton.onclick = () => {
             const imageUrl = uploadedImage.getAttribute("src") as string
 
-            if (uploadedImage.getAttribute("src") && imageUrl !== "../assets/placeholder.png") {
+            if (uploadedImage.getAttribute("src") && imageUrl !== "/images/placeholder.png") {
                 uploadStatus.textContent = ""
                 uploadStatus.className = "empty"
 

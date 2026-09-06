@@ -474,7 +474,7 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
         downloadButton.addEventListener("click", downloadPress)
         restartButton.addEventListener("click", restartPress)
 
-        placeholderImage.src = "../assets/placeholder.png"
+        placeholderImage.src = "/images/placeholder.png"
 
         let completeFunctionWorking = false
         let previewImageGenerated = false

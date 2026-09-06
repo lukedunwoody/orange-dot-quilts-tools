@@ -16,30 +16,30 @@
 /* fonts */
 @font-face {
     font-family: "Nerd Icons";
-    src: url("../fonts/NerdIcons.woff2") format("woff2");
+    src: url("/fonts/NerdIcons.woff2") format("woff2");
 }
 
 @font-face {
     font-family: "DM Sans";
-    src: url("../fonts/DMSans/DMSans-Light.woff2") format("woff2");
+    src: url("/fonts/DMSans/DMSans-Light.woff2") format("woff2");
     font-weight: 300;
 }
 
 @font-face {
     font-family: "DM Sans";
-    src: url("../fonts/DMSans/DMSans-Medium.woff2") format("woff2");
+    src: url("/fonts/DMSans/DMSans-Medium.woff2") format("woff2");
     font-weight: 500;
 }
 
 @font-face {
     font-family: "DM Sans";
-    src: url("../fonts/DMSans/DMSans-Bold.woff2") format("woff2");
+    src: url("/fonts/DMSans/DMSans-Bold.woff2") format("woff2");
     font-weight: 700;
 }
 
 @font-face {
     font-family: "DM Sans";
-    src: url("../fonts/DMSans/DMSans-Black.woff2") format("woff2");
+    src: url("/fonts/DMSans/DMSans-Black.woff2") format("woff2");
     font-weight: 900;
 }
 
