@@ -19,6 +19,9 @@ const swapColorButton = document.getElementById("preview-swap-color") as HTMLBut
 const downloadButton = document.getElementById("preview-download-button") as HTMLButtonElement
 const restartButton = document.getElementById("restart-button") as HTMLButtonElement
 
+const singlePatternInput = document.getElementById("single-pattern") as HTMLInputElement
+const doubleSidedInput = document.getElementById("double-sided") as HTMLInputElement
+
 const canvas = document.getElementById("preview-select-canvas") as HTMLCanvasElement
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
 const completeCanvas = document.getElementById("preview-complete-canvas") as HTMLCanvasElement
@@ -47,6 +50,8 @@ function swapColorPress(): void {
 let mouseX: number = 0
 let mouseY: number = 0
 let mouseDown: boolean = false
+let mouseLastDownX: number = 0
+let mouseLastDownY: number = 0
 let activePointerId: number | null = null
 let previewSelectionPending: boolean = false
 
@@ -68,6 +73,8 @@ function onPointerDown(e: PointerEvent) {
     // A tap may not generate a move first, so always use its coordinates.
     mouseX = point.x
     mouseY = point.y
+    mouseLastDownX = point.x
+    mouseLastDownY = point.y
     mouseDown = true
     activePointerId = e.pointerId
     previewSelectionPending = true
@@ -241,12 +248,14 @@ function getTriData(
     pxPerGrid: number,
     imageOffset: number,
     xGridAmt: number,
-    yGridAmt: number
+    yGridAmt: number,
+    usedMouseX: number,
+    usedMouseY: number
 ): TriData {
     const imageW = pxPerGrid * xGridAmt
     const imageH = pxPerGrid * yGridAmt
-    const imageX = Math.min(Math.max(mouseX - imageOffset, 0), imageW - Number.EPSILON)
-    const imageY = Math.min(Math.max(mouseY - imageOffset, 0), imageH - Number.EPSILON)
+    const imageX = Math.min(Math.max(usedMouseX - imageOffset, 0), imageW - Number.EPSILON)
+    const imageY = Math.min(Math.max(usedMouseY - imageOffset, 0), imageH - Number.EPSILON)
 
     // Determine row and column inside the image, not the canvas border.
     const gridCords: Point = {
@@ -307,7 +316,9 @@ function getTriData(
     }
 }
 
-function drawHover(triData: TriData, imageOffset: number): void {
+function drawHover(pxPerGrid: number, imageOffset: number, xGridAmt: number, yGridAmt: number): void {
+    const triData: TriData = getTriData(pxPerGrid, imageOffset, xGridAmt, yGridAmt, mouseX, mouseY)
+
     ctx.beginPath()
     ctx.moveTo(triData.points[0].x + imageOffset, triData.points[0].y + imageOffset)
     ctx.lineTo(triData.points[1].x + imageOffset, triData.points[1].y + imageOffset)
@@ -318,7 +329,7 @@ function drawHover(triData: TriData, imageOffset: number): void {
     ctx.fill()
 }
 
-async function constructCompletedSqaure(imageData: ImageData, triData: TriData, pxPerGrid: number): Promise<ImageData> {
+async function constructCompletedSqaure(imageData: ImageData, triData: TriData, pxPerGrid: number, doubleSided: boolean): Promise<ImageData> {
     const triPos: number = triData.pos[2]
 
     const cornerPoints = triData.corners.map((element, i) => {
@@ -342,25 +353,13 @@ async function constructCompletedSqaure(imageData: ImageData, triData: TriData, 
             const getRow = rowStart + (row * rowDir)
             const getCol = colStart + (col * colDir)
 
-            const color: RGBA = getPixelColor(imageData, triPos % 2 === 0 ? getCol : getRow, triPos % 2 === 0 ? getRow : getCol)
-
-            /* Non Inverted
-            const placePoints: [Point, Point, Point, Point] = [
-                {
-                    x: col,
-                    y: row
-                }, {
-                    x: (pxPerGrid - 1) - row,
-                    y: col
-                }, {
-                    x: (pxPerGrid - 1) - col,
-                    y: (pxPerGrid - 1) - row
-                }, {
-                    x: row,
-                    y: (pxPerGrid - 1) - col,
-                }
-            ]
-            */
+            const sourceX = triPos % 2 === 0 ? getCol : getRow
+            const sourceY = triPos % 2 === 0 ? getRow : getCol
+            const color: RGBA = getPixelColor(
+                imageData,
+                Math.min(Math.max(sourceX, 0), imageData.width - 1),
+                Math.min(Math.max(sourceY, 0), imageData.height - 1)
+            )
 
             const placePoints: [Point, Point, Point, Point] = [
                 {
@@ -368,13 +367,13 @@ async function constructCompletedSqaure(imageData: ImageData, triData: TriData, 
                     y: row
                 }, {
                     x: (pxPerGrid - 1) - row,
-                    y: ((pxPerGrid - 1) - col) - 1,
+                    y: doubleSided ? ((pxPerGrid - 1) - col) - 1 : col,
                 }, {
                     x: (pxPerGrid - 1) - col,
                     y: (pxPerGrid - 1) - row
                 }, {
                     x: row,
-                    y: col + 1
+                    y: doubleSided ? col + 1 : (pxPerGrid - 1) - col
                 }
             ]
 
@@ -418,11 +417,17 @@ function flipImageData(imageData: ImageData, flipX: boolean, flipY: boolean): Im
     return returnImage
 }
 
-function drawSqaurePattern(imageData: ImageData, pxPerGrid: number): void {
-    for (let i: number = 0; i < X_OUTPUT_MULT; i++) {
+function drawSqaurePattern(imageData: ImageData, pxPerGrid: number, singlePattern: boolean): void {
+    const xAmt = singlePattern ? 1 : X_OUTPUT_MULT
+    const yAmt = singlePattern ? 1 : Y_OUTPUT_MULT
+
+    completeCanvas.width = xAmt * pxPerGrid
+    completeCanvas.height = yAmt * pxPerGrid
+
+    for (let i: number = 0; i < xAmt; i++) {
         const flipX = i % 2 !== 0
 
-        for (let j: number = 0; j < Y_OUTPUT_MULT; j++) {
+        for (let j: number = 0; j < yAmt; j++) {
             const flipY = j % 2 !== 0
             const flippedImage: ImageData = flipImageData(imageData, flipX, flipY)
 
@@ -474,6 +479,12 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
         downloadButton.addEventListener("click", downloadPress)
         restartButton.addEventListener("click", restartPress)
 
+        const redrawPattern = (): void => {
+            previewSelectionPending = true
+        }
+        singlePatternInput.addEventListener("change", redrawPattern)
+        doubleSidedInput.addEventListener("change", redrawPattern)
+
         placeholderImage.src = "/images/placeholder.png"
 
         let completeFunctionWorking = false
@@ -482,9 +493,9 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
         async function update(): Promise<void> {
             ctx.putImageData(normalizedImageData, imageOffset, imageOffset)
 
-            const triData = getTriData(pxPerGrid, imageOffset, xGridAmt, yGridAmt)
+            const triData = getTriData(pxPerGrid, imageOffset, xGridAmt, yGridAmt, mouseLastDownX, mouseLastDownY)
 
-            drawHover(triData, imageOffset)
+            drawHover(pxPerGrid, imageOffset, xGridAmt, yGridAmt)
             drawTriGrid(
                 cavnasW, canvasH,
                 imageW, imageH,
@@ -495,8 +506,9 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
                 previewSelectionPending = false
                 completeFunctionWorking = true
                 try {
-                    const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triData, pxPerGrid)
-                    drawSqaurePattern(completeSquareData, pxPerGrid)
+                    const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triData, pxPerGrid, doubleSidedInput.checked)
+
+                    drawSqaurePattern(completeSquareData, pxPerGrid, singlePatternInput.checked)
                     previewImageGenerated = true
                 } finally {
                     completeFunctionWorking = false
@@ -544,6 +556,8 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
 
             swapColorButton.removeEventListener("click", swapColorPress)
             downloadButton.removeEventListener("click", downloadPress)
+            singlePatternInput.removeEventListener("change", redrawPattern)
+            doubleSidedInput.removeEventListener("change", redrawPattern)
 
             resolve()
         }

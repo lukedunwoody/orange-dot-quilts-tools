@@ -191,6 +191,15 @@ main p {
     color: var(--font-color);
 }
 
+main label {
+    font-size: 1rem;
+    color: var(--font-color);
+}
+
+#complete-pattern {
+    margin-bottom: 6px;
+}
+
 #tool-description {
     margin-top: 0;
     margin-bottom: 48px;
@@ -295,6 +304,44 @@ main canvas {
     border: 0;
 }
 
+.pattern-options {
+    gap: 0;
+}
+
+.pattern-options label + input {
+    margin-left: 0.25rem;
+}
+
+.pattern-options input + label {
+    margin-left: 1.5rem;
+}
+
+.pattern-options input[type="checkbox"] {
+    appearance: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 0;
+    border: 1px solid color-mix(in srgb, var(--font-color) 50%, transparent);
+    border-radius: 3px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.pattern-options input[type="checkbox"]:checked {
+    border-color: var(--accent-color);
+    background-color: var(--accent-color);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='m3 8 3 3 7-7'/%3E%3C/svg%3E");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 0.8rem;
+}
+
+.pattern-options input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
 button {
     font-family: "DM Sans", "Nerd Icons", sans-serif;
     font-size: clamp(0.8rem, 2vw, 1rem);
@@ -397,8 +444,7 @@ div.upload {
     aspect-ratio: 5;
 }
 
-#preview-select-canvas,
-#preview-complete-canvas {
+#preview-select-canvas {
     margin-top: 0;
 }
 
