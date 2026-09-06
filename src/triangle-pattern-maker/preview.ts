@@ -489,8 +489,12 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
 
         let completeFunctionWorking = false
         let previewImageGenerated = false
+        let animationFrameId: number | null = null
+        let stopped = false
 
         async function update(): Promise<void> {
+            if (stopped) return
+
             ctx.putImageData(normalizedImageData, imageOffset, imageOffset)
 
             const triData = getTriData(pxPerGrid, imageOffset, xGridAmt, yGridAmt, mouseLastDownX, mouseLastDownY)
@@ -508,6 +512,8 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
                 try {
                     const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triData, pxPerGrid, doubleSidedInput.checked)
 
+                    if (stopped) return
+
                     drawSqaurePattern(completeSquareData, pxPerGrid, singlePatternInput.checked, doubleSidedInput.checked)
                     previewImageGenerated = true
                 } finally {
@@ -515,7 +521,9 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
                 }
             }
 
-            requestAnimationFrame(update)
+            if (!stopped) {
+                animationFrameId = requestAnimationFrame(update)
+            }
         }
 
         function downloadPress(): number {
@@ -541,6 +549,11 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
 
         function restartPress(): void {
             restartButton.removeEventListener("click", restartPress)
+            stopped = true
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId)
+                animationFrameId = null
+            }
 
             canvas.removeEventListener("pointermove", onPointerMove)
             canvas.removeEventListener("pointerdown", onPointerDown)
