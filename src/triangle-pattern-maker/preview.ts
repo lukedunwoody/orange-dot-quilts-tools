@@ -148,7 +148,7 @@ function drawTriGrid(
     }
 
     for (let i: number = 1; i < yGridAmt; i++) {
-        const yPos: number = ((i / yGridAmt) * imageW) + lineWeight
+        const yPos: number = ((i / yGridAmt) * imageH) + lineWeight
         const point0: Point = {
             x: 0,
             y: yPos
