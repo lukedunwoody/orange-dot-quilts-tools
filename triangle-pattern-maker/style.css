@@ -401,3 +401,43 @@ div.upload {
 #preview-complete-canvas {
     margin-top: 0;
 }
+
+/* processing indicator */
+.step > .processing-indicator {
+    aspect-ratio: 2.88;
+    min-height: 240px;
+}
+
+.processing-images {
+    align-self: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+}
+
+.processing-images img {
+    grid-area: 1 / 1;
+    height: 60%;
+    width: auto;
+    margin: 0;
+    opacity: 0;
+    transition: opacity 5s ease;
+}
+
+.step[data-step="processing"].is-active .processing-indicator img {
+    opacity: 1;
+}
+
+.step[data-step="processing"] #processing-outside {
+    animation: processing-rotate 4s linear infinite;
+}
+
+@keyframes processing-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

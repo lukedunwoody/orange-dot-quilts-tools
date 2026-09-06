@@ -1,8 +1,6 @@
 // Probably some of the most dense math I have ever written
 // Sorry in advance to future self or others for the naming
 
-// TODO Add progress bar
-
 import { getPixelColor, setPixelColor } from "./imageUtils"
 import type { Point, RGBA } from "./types"
 
