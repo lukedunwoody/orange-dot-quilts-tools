@@ -325,6 +325,8 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
         canvas.addEventListener("pointercancel", onPointerUp)
 
         // Functions
+        let animationFrameId: number | null = null
+
         function updateMouseDiff(): void {
             mouseDiffX = mouseLastX - mouseX
             mouseDiffY = mouseLastY - mouseY
@@ -406,7 +408,7 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
             drawGrid(circlePositions, xGridAmt, yGridAmt, imageW)
             drawCircles(circlePositions, imageW)
 
-            requestAnimationFrame(update)
+            animationFrameId = requestAnimationFrame(update)
         }
 
         // Finish Button
@@ -427,6 +429,10 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
 
             if (activePointerId !== null && canvas.hasPointerCapture(activePointerId)) {
                 canvas.releasePointerCapture(activePointerId)
+            }
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId)
+                animationFrameId = null
             }
             mouseDown = false
             activePointerId = null
