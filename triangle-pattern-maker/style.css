@@ -402,13 +402,13 @@ div.upload {
     margin-top: 0;
 }
 
-/* processing indicator */
-.step > .processing-indicator {
+/* progress indicator */
+.step > .progress-indicator {
     aspect-ratio: 2.88;
     min-height: 240px;
 }
 
-.processing-images {
+.progress-images {
     align-self: stretch;
     flex: 1 1 auto;
     min-height: 0;
@@ -416,7 +416,7 @@ div.upload {
     place-items: center;
 }
 
-.processing-images img {
+.progress-images img {
     grid-area: 1 / 1;
     height: 60%;
     width: auto;
@@ -425,15 +425,15 @@ div.upload {
     transition: opacity 5s ease;
 }
 
-.step[data-step="processing"].is-active .processing-indicator img {
+.step[data-step="progress"].is-active .progress-indicator img {
     opacity: 1;
 }
 
-.step[data-step="processing"] #processing-outside {
-    animation: processing-rotate 4s linear infinite;
+.step[data-step="progress"] #progress-outside {
+    animation: progress-rotate 4s linear infinite;
 }
 
-@keyframes processing-rotate {
+@keyframes progress-rotate {
     from {
         transform: rotate(0deg);
     }

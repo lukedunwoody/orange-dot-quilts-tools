@@ -4,7 +4,7 @@ import { showStep } from "./steps"
 import { getImageUpload } from "./upload"
 import { getAlignedCorners } from "./align"
 import { letUserPreview } from "./preview"
-import { waitForNormalization } from "./processing"
+import { waitForNormalization } from "./progress"
 
 async function main() {
     // Step 1
@@ -16,7 +16,7 @@ async function main() {
     const pointsData: PointsData = await getAlignedCorners(imageUrl)
 
     // Step 3
-    showStep("processing")
+    showStep("progress")
     const normalizedImageData: ImageData = await waitForNormalization(imageUrl, pointsData)
 
     // Step 4

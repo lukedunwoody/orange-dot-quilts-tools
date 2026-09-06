@@ -9,6 +9,7 @@ interface ColorWeight {
     weight: number
 }
 
+
 // DISCLAIMER: The following function was made by an LLM
 // It is a simple function that determines if a point is acutally inside a quad
 // I'm just tired man
@@ -97,8 +98,16 @@ function averageColorsByWeight(colorWeights: ColorWeight[]): RGBA {
     return averagedColor
 }
 
-export function normalizeImage(image: ImageData, circlePositions: [Point, Point, Point, Point], outputW: number, outputH: number): ImageData {
+export function normalizeImage(
+    image: ImageData,
+    circlePositions: [Point, Point, Point, Point],
+    outputW: number,
+    outputH: number,
+    onProgress?: (percent: number) => void
+): ImageData {
     // x and y of items in circle positions are already normalized between 0 and 1
+
+    onProgress?.(0)
 
     const inputImageW: number = image.width
     const inputImageH: number = image.height
@@ -351,7 +360,13 @@ export function normalizeImage(image: ImageData, circlePositions: [Point, Point,
         s0 = s1
         run0 = run1
         rise0 = rise1
+
+        if (i % 35 === 0) {
+            onProgress?.((i / outputW) * 100)
+        }
     }
+
+    onProgress?.(100)
 
     return returnImage
 }
