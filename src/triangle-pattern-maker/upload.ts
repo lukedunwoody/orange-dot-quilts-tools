@@ -19,7 +19,11 @@ function inputImageChange(): void {
     setImage(inputImage.files?.[0])
 }
 
-function click(): void {
+function click(e: MouseEvent): void {
+    // The file input is inside the drop zone, so its synthetic click would
+    // otherwise bubble back here and trigger another input click.
+    if (e.target === inputImage) return
+
     inputImage.click()
 }
 
@@ -46,6 +50,7 @@ function backButtonPress(): void {
 export function getImageUpload(): Promise<string> {
     return new Promise((resolve) => {
         uploadedImage.src = "/images/placeholder.png"
+        inputImage.value = ""
 
         dropZone.addEventListener("dragover", dragOver)
         dropZone.addEventListener("dragleave", dragLeave)
