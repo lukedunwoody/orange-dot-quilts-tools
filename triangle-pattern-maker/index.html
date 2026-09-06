@@ -2,95 +2,103 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Triangle Quilt Pattern Maker</title>
+    <meta name="description" content="Turn a photo of your triangle quilt block into a complete quilt pattern for free.">
+
+    <meta property="og:title" content="Triangle Quilt Pattern Maker">
+    <meta property="og:description" content="Turn a photo of your triangle quilt block into a complete quilt pattern for free.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tools.orangedotquilts.com/triangle-pattern-maker/">
+
+    <link rel="canonical" href="https://tools.orangedotquilts.com/triangle-pattern-maker/">
+    <link rel="icon" href="/assets/odq-icon.png" type="image/png">
     <link rel="stylesheet" href="style.css">
+    <script type="module" src="../src/triangle-pattern-maker/main.ts"></script>
 </head>
+<body>
+    <nav class="navbar">
+        <ul>
+            <li><a href="../">← All Tools</a></li>
+            <li><a href="https://www.orangedotquilts.com/"><img src="../assets/odq-logo.png" alt="OrangeDotQuilts"></a></li>
+            <li><a href="https://github.com/lukedunwoody/orange-dot-quilts-tools/wiki">Help </a></li>
+        </ul>
+    </nav>
 
-<html>
-    <body>
-        <nav class="navbar">
-            <ul>
-                <li><a href="../">← All Tools</a></li>
-                <li><a href="https://www.orangedotquilts.com/"><img src="../assets/odq-logo.png" alt="OrangeDotQuilts"></a></li>
-                <li><a href="https://github.com/lukedunwoody/orange-dot-quilts-tools/wiki">Help </a></li>
-            </ul>
-        </nav>
+    <main>
+        <h1>Triangle Quilt Pattern Maker</h1>
+        <p id="tool-description">Turn a photo of your triangle quilt block into a complete square quilt pattern.</p>
 
-        <main>
-            <h1>Triangle Quilt Pattern Maker</h1>
-            <p id="tool-description">Turn a photo of your triangle quilt block into a complete square quilt pattern.</p>
+        <div class="steps" id="steps">
+            <section class="step is-active" data-step="upload">
+                <div class="upload" id="drop-zone">
+                    <button id="upload-select-button">  Choose Quilt</button>
+                    <p id="drag-info">or drag and drop</p>
 
-            <div class="steps" id="steps">
-                <section class="step is-active" data-step="upload">
-                    <div class="upload" id="drop-zone">
-                        <button id="upload-select-button">  Choose Quilt</button>
-                        <p id="drag-info">or drag and drop</p>
+                    <input id="input-image" type="file" accept="image/*" hidden>
+                </div>
+            </section>
 
-                        <input id="input-image" type="file" accept="image/*" hidden>
+            <section class="step" data-step="selected-image" aria-hidden="true">
+                <div class="upload">
+                    <h3>Selected image</h3>
+                    <img id="uploaded-image" src="../assets/placeholder.png" alt="Uploaded image">
+                    <p id="upload-status" data-status="empty"></p>
+                    <div class="button-container">
+                        <button id="upload-back-button" class="danger">Back</button>
+                        <button id="upload-finish-button" class="primary">Continue</button>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <section class="step" data-step="selected-image" aria-hidden="true">
-                    <div class="upload">
-                        <h3>Selected image</h3>
-                        <img id="uploaded-image" src="../assets/placeholder.png" alt="Uploaded image">
-                        <p id="upload-status" data-status="empty"></p>
-                        <div class="button-container">
-                            <button id="upload-back-button" class="danger">Back</button>
-                            <button id="upload-finish-button" class="primary">Continue</button>
-                        </div>
+            <section class="step" data-step="align" aria-hidden="true">
+                <div>
+                    <h3>Line Up Your Quilt</h3>
+                    <p>
+                        Choose the amount of rows and columns to align, then move the circles to the area’s corners.
+                        <br>
+                        You can use the full pattern or test a custom section with only a few squares.
+                    </p>
+
+                    <div class="button-container">
+                        <button id="decrease-x" class="decrease">-</button>
+                        <output id="amt-x-grid" for="decrease-x increase-x">3</output>
+                        <button id="increase-x" class="increase">+</button>
+
+                        <button id="decrease-y" class="decrease">-</button>
+                        <output id="amt-y-grid" for="decrease-y increase-y">3</output>
+                        <button id="increase-y" class="increase">+</button>
                     </div>
-                </section>
 
-                <section class="step" data-step="align" aria-hidden="true">
-                    <div>
-                        <h3>Line Up Your Quilt</h3>
-                        <p>
-                            Choose the amount of rows and columns to align, then move the circles to the area’s corners.
-                            <br>
-                            You can use the full pattern or test a custom section with only a few squares.
-                        </p>
+                    <canvas id="align-canvas"></canvas>
 
-                        <div class="button-container">
-                            <button id="decrease-x" class="decrease">-</button>
-                            <output id="amt-x-grid" for="decrease-x increase-x">3</output>
-                            <button id="increase-x" class="increase">+</button>
-
-                            <button id="decrease-y" class="decrease">-</button>
-                            <output id="amt-y-grid" for="decrease-y increase-y">3</output>
-                            <button id="increase-y" class="increase">+</button>
-                        </div>
-
-                        <canvas id="align-canvas"></canvas>
-
-                        <div class="button-container">
-                            <button id="align-swap-color" class="secondary">Swap Colors</button>
-                            <button id="align-finish-button" class="primary">Continue</button>
-                        </div>
+                    <div class="button-container">
+                        <button id="align-swap-color" class="secondary">Swap Colors</button>
+                        <button id="align-finish-button" class="primary">Continue</button>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <section class="step" data-step="preview" aria-hidden="true">
-                    <div>
-                        <h3>Preview Your Pattern</h3>
-                        <p>Click any triangle to preview what it would look like as a square pattern!</p>
+            <section class="step" data-step="preview" aria-hidden="true">
+                <div>
+                    <h3>Preview Your Pattern</h3>
+                    <p>Click any triangle to preview what it would look like as a square pattern!</p>
 
-                        <canvas id="preview-select-canvas"></canvas>
+                    <canvas id="preview-select-canvas"></canvas>
 
-                        <button id="preview-swap-color" class="secondary">Swap Colors</button>
-                        <p>Complete Pattern:</p>
+                    <button id="preview-swap-color" class="secondary">Swap Colors</button>
+                    <p>Complete Pattern:</p>
 
-                        <canvas id="preview-complete-canvas"></canvas>
+                    <canvas id="preview-complete-canvas"></canvas>
 
-                        <div class="button-container">
-                            <button id="restart-button" class="danger">Restart</button>
-                            <button id="preview-download-button" class="primary">Download</button>
-                        </div>
+                    <div class="button-container">
+                        <button id="restart-button" class="danger">Restart</button>
+                        <button id="preview-download-button" class="primary">Download</button>
                     </div>
-                </section>
-            </div>
-        </main>
-
-        <script type="module" src="../src/triangle-pattern-maker/main.ts"></script>
-    </body>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
 </html>
