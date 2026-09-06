@@ -417,7 +417,7 @@ function flipImageData(imageData: ImageData, flipX: boolean, flipY: boolean): Im
     return returnImage
 }
 
-function drawSqaurePattern(imageData: ImageData, pxPerGrid: number, singlePattern: boolean): void {
+function drawSqaurePattern(imageData: ImageData, pxPerGrid: number, singlePattern: boolean, doubleSided: boolean): void {
     const xAmt = singlePattern ? 1 : X_OUTPUT_MULT
     const yAmt = singlePattern ? 1 : Y_OUTPUT_MULT
 
@@ -429,7 +429,7 @@ function drawSqaurePattern(imageData: ImageData, pxPerGrid: number, singlePatter
 
         for (let j: number = 0; j < yAmt; j++) {
             const flipY = j % 2 !== 0
-            const flippedImage: ImageData = flipImageData(imageData, flipX, flipY)
+            const flippedImage: ImageData = doubleSided ? flipImageData(imageData, flipX, flipY) : imageData
 
             completeTX.putImageData(flippedImage, i * pxPerGrid, j * pxPerGrid)
         }
@@ -508,7 +508,7 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
                 try {
                     const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triData, pxPerGrid, doubleSidedInput.checked)
 
-                    drawSqaurePattern(completeSquareData, pxPerGrid, singlePatternInput.checked)
+                    drawSqaurePattern(completeSquareData, pxPerGrid, singlePatternInput.checked, doubleSidedInput.checked)
                     previewImageGenerated = true
                 } finally {
                     completeFunctionWorking = false
