@@ -1,7 +1,7 @@
 // Step One Helper
 import { showStep } from "./steps";
 
-const dropZone = document.getElementById("drop-zone") as HTMLDivElement;
+const dropZone = document.getElementById("drop-zone") as HTMLDivElement
 const inputImage = document.getElementById("input-image") as HTMLInputElement
 const uploadedImage = document.getElementById("uploaded-image") as HTMLImageElement
 const uploadStatus = document.getElementById("upload-status") as HTMLParagraphElement
