@@ -4,6 +4,9 @@ import { getCanvasPoint } from "./canvasUtils"
 import { urlToImage } from "./imageUtils"
 import type { Point, PointsData } from "./types"
 
+// Config
+const MAX_GRID_AMT = 6
+
 // UI Appearance Config (percent of width)
 const CIRCLE_START_OFFSET: number     = 0.125
 const CIRCLE_DRAW_RADIUS: number      = 0.020
@@ -50,22 +53,22 @@ xGridAmtOutput.value = xGridAmt.toString()
 yGridAmtOutput.value = yGridAmt.toString()
 
 function xDecreasePress(): void {
-    xGridAmt = clamp(xGridAmt - 1, 1, 5)
+    xGridAmt = Math.max(xGridAmt - 1, 1)
     xGridAmtOutput.value = xGridAmt.toString()
 }
 
 function xIncreasePress(): void {
-    xGridAmt = clamp(xGridAmt + 1, 1, 5)
+    xGridAmt = Math.min(xGridAmt + 1, MAX_GRID_AMT)
     xGridAmtOutput.value = xGridAmt.toString()
 }
 
 function yDecreasePress(): void {
-    yGridAmt = clamp(yGridAmt - 1, 1, 5)
+    yGridAmt = Math.max(yGridAmt - 1, 1)
     yGridAmtOutput.value = yGridAmt.toString()
 }
 
 function yIncreasePress(): void {
-    yGridAmt = clamp(yGridAmt + 1, 1, 5)
+    yGridAmt = Math.min(yGridAmt + 1, MAX_GRID_AMT)
     yGridAmtOutput.value = yGridAmt.toString()
 }
 

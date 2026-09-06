@@ -53,7 +53,7 @@ body {
     margin: 0;
 
     font-family: "DM Sans", "Nerd Icons", sans-serif;
-    font-size: 1rem;
+    font-size: clamp(0.8rem, 2vw, 1rem);
     font-weight: 500;
 }
 
@@ -192,12 +192,13 @@ main p {
 }
 
 main label {
-    font-size: 1rem;
+    font-size: clamp(0.8rem, 2vw, 1rem);
     color: var(--font-color);
 }
 
 #complete-pattern {
-    margin-bottom: 6px;
+    margin-top: var(--content-padding);
+    margin-bottom: calc(var(--content-padding) / 2);
 }
 
 #tool-description {
@@ -313,13 +314,13 @@ main canvas {
 }
 
 .pattern-options input + label {
-    margin-left: 1.5rem;
+    margin-left: clamp(1.2rem, 3vw, 1.5rem);
 }
 
 .pattern-options input[type="checkbox"] {
     appearance: none;
-    width: 1.1rem;
-    height: 1.1rem;
+    width: calc(clamp(0.8rem, 2vw, 1rem) * 1.1);
+    height: calc(clamp(0.8rem, 2vw, 1rem) * 1.1);
     margin-top: 0;
     margin-bottom: 0;
     border: 1px solid color-mix(in srgb, var(--font-color) 50%, transparent);

@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Triangle Quilt Pattern Maker</title>
-    <meta name="description" content="Turn a photo of your triangle quilt block into a complete quilt pattern for free.">
+    <meta name="description" content="Turn a photo of your triangle quilt block into a complete square block for free.">
 
     <meta property="og:title" content="Triangle Quilt Pattern Maker">
-    <meta property="og:description" content="Turn a photo of your triangle quilt block into a complete quilt pattern for free.">
+    <meta property="og:description" content="Turn a photo of your triangle quilt block into a complete square block for free.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://tools.orangedotquilts.com/triangle-pattern-maker/">
 
@@ -28,7 +28,7 @@
 
     <main>
         <h1>Triangle Quilt Pattern Maker</h1>
-        <p id="tool-description">Turn a photo of your triangle quilt block into a complete square quilt pattern.</p>
+        <p id="tool-description">Turn a photo of your triangle quilt block into a complete square block.</p>
 
         <div class="steps" id="steps">
             <section class="step is-active" data-step="upload">
@@ -94,17 +94,17 @@
 
             <section class="step" data-step="preview" aria-hidden="true">
                 <div>
-                    <h3>Preview Your Pattern</h3>
-                    <p>Click any triangle to preview what it would look like as a square pattern!</p>
+                    <h3>Preview Your Blocks</h3>
+                    <p>Click any triangle to preview what it would look like as a block!</p>
 
                     <canvas id="preview-select-canvas"></canvas>
 
                     <button id="preview-swap-color" class="secondary">Swap Colors</button>
-                    <p id="complete-pattern">Complete Pattern:</p>
+                    <h3 id="complete-pattern">Finished Block</h3>
 
                     <div class="button-container pattern-options">
-                        <label for="single-pattern">Single Pattern:</label>
-                        <input type="checkbox" id="single-pattern" name="single-pattern">
+                        <label for="single-pattern">Repeating Pattern:</label>
+                        <input type="checkbox" id="repeating-pattern" name="single-pattern">
                         <label for="double-sided">Double Sided:</label>
                         <input type="checkbox" id="double-sided" name="double-sided">
                     </div>

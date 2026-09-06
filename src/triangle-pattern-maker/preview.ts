@@ -19,7 +19,7 @@ const swapColorButton = document.getElementById("preview-swap-color") as HTMLBut
 const downloadButton = document.getElementById("preview-download-button") as HTMLButtonElement
 const restartButton = document.getElementById("restart-button") as HTMLButtonElement
 
-const singlePatternInput = document.getElementById("single-pattern") as HTMLInputElement
+const repeatingPatternInput = document.getElementById("repeating-pattern") as HTMLInputElement
 const doubleSidedInput = document.getElementById("double-sided") as HTMLInputElement
 
 const canvas = document.getElementById("preview-select-canvas") as HTMLCanvasElement
@@ -417,9 +417,9 @@ function flipImageData(imageData: ImageData, flipX: boolean, flipY: boolean): Im
     return returnImage
 }
 
-function drawSqaurePattern(imageData: ImageData, pxPerGrid: number, singlePattern: boolean, doubleSided: boolean): void {
-    const xAmt = singlePattern ? 1 : X_OUTPUT_MULT
-    const yAmt = singlePattern ? 1 : Y_OUTPUT_MULT
+function drawSqaurePattern(imageData: ImageData, pxPerGrid: number, repeatingPattern: boolean, doubleSided: boolean): void {
+    const xAmt = repeatingPattern ? X_OUTPUT_MULT : 1
+    const yAmt = repeatingPattern ? Y_OUTPUT_MULT : 1
 
     completeCanvas.width = xAmt * pxPerGrid
     completeCanvas.height = yAmt * pxPerGrid
@@ -482,7 +482,7 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
         const redrawPattern = (): void => {
             previewSelectionPending = true
         }
-        singlePatternInput.addEventListener("change", redrawPattern)
+        repeatingPatternInput.addEventListener("change", redrawPattern)
         doubleSidedInput.addEventListener("change", redrawPattern)
 
         placeholderImage.src = "/images/placeholder.png"
@@ -514,7 +514,7 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
 
                     if (stopped) return
 
-                    drawSqaurePattern(completeSquareData, pxPerGrid, singlePatternInput.checked, doubleSidedInput.checked)
+                    drawSqaurePattern(completeSquareData, pxPerGrid, repeatingPatternInput.checked, doubleSidedInput.checked)
                     previewImageGenerated = true
                 } finally {
                     completeFunctionWorking = false
@@ -569,7 +569,7 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
 
             swapColorButton.removeEventListener("click", swapColorPress)
             downloadButton.removeEventListener("click", downloadPress)
-            singlePatternInput.removeEventListener("change", redrawPattern)
+            repeatingPatternInput.removeEventListener("change", redrawPattern)
             doubleSidedInput.removeEventListener("change", redrawPattern)
 
             resolve()
