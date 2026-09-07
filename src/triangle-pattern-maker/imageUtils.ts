@@ -11,6 +11,27 @@ export function urlToImage(imageUrl: string): Promise<HTMLImageElement> {
     })
 }
 
+const MAX_IMAGE_DIMENSION = 2400
+
+export function resizeImageUrl(image: HTMLImageElement): string {
+    const scale = Math.min(
+        1,
+        MAX_IMAGE_DIMENSION / image.naturalWidth,
+        MAX_IMAGE_DIMENSION / image.naturalHeight
+    )
+    const width = Math.max(1, Math.round(image.naturalWidth * scale))
+    const height = Math.max(1, Math.round(image.naturalHeight * scale))
+
+    const canvas = document.createElement("canvas")
+    canvas.width = width
+    canvas.height = height
+    const context = canvas.getContext("2d")
+    if (!context) throw new Error("Unable to prepare the uploaded image")
+
+    context.drawImage(image, 0, 0, width, height)
+    return canvas.toDataURL("image/png")
+}
+
 export function imageToImageData(image: HTMLImageElement): ImageData {
     const tmpCanvas = document.createElement("canvas")
     const tmpCtx = tmpCanvas.getContext("2d")!

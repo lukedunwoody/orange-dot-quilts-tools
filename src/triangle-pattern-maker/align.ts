@@ -148,6 +148,15 @@ function onPointerUp(e: PointerEvent) {
     pointerTargetPending = false
 }
 
+function onLostPointerCapture(e: PointerEvent) {
+    if (activePointerId !== e.pointerId) return
+
+    mouseDown = false
+    activePointerId = null
+    activeCircle = null
+    pointerTargetPending = false
+}
+
 // Util Functions
 function clamp(val: number, min: number, max: number): number {
     return Math.min(Math.max(val, min), max)
@@ -276,9 +285,11 @@ function drawGrid(circlePositions: Circle[], xGridAmt: number, yGridAmt: number,
 
 // Main
 export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
-    return new Promise(async (resolve) => {
-        // Data
-        const image = await urlToImage(imageUrl)
+    return new Promise((resolve, reject) => {
+        void (async () => {
+            try {
+                // Data
+                const image = await urlToImage(imageUrl)
 
         const imageW: number = image.naturalWidth
         const imageH: number = image.naturalHeight
@@ -326,6 +337,7 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
         canvas.addEventListener("pointerdown", onPointerDown)
         canvas.addEventListener("pointerup", onPointerUp)
         canvas.addEventListener("pointercancel", onPointerUp)
+        canvas.addEventListener("lostpointercapture", onLostPointerCapture)
 
         // Functions
         let animationFrameId: number | null = null
@@ -429,6 +441,7 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
             canvas.removeEventListener("pointerdown", onPointerDown)
             canvas.removeEventListener("pointerup", onPointerUp)
             canvas.removeEventListener("pointercancel", onPointerUp)
+            canvas.removeEventListener("lostpointercapture", onLostPointerCapture)
 
             if (activePointerId !== null && canvas.hasPointerCapture(activePointerId)) {
                 canvas.releasePointerCapture(activePointerId)
@@ -457,6 +470,10 @@ export function getAlignedCorners(imageUrl: string): Promise<PointsData> {
         alignFinishButton.addEventListener("click", alignFinishPress)
 
         // Entry Point
-        update()
+                update()
+            } catch (error) {
+                reject(error)
+            }
+        })()
     })
 }

@@ -93,6 +93,13 @@ function onPointerUp(e: PointerEvent) {
     activePointerId = null
 }
 
+function onLostPointerCapture(e: PointerEvent) {
+    if (activePointerId !== e.pointerId) return
+
+    mouseDown = false
+    activePointerId = null
+}
+
 // Util Functions
 function drawLine(point0: Point, point1: Point, width: number, color: string): void {
     ctx.beginPath()
@@ -474,6 +481,7 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
         canvas.addEventListener("pointerdown", onPointerDown)
         canvas.addEventListener("pointerup", onPointerUp)
         canvas.addEventListener("pointercancel", onPointerUp)
+        canvas.addEventListener("lostpointercapture", onLostPointerCapture)
 
         swapColorButton.addEventListener("click", swapColorPress)
         downloadButton.addEventListener("click", downloadPress)
@@ -530,7 +538,10 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
             if (!previewImageGenerated) return 1
 
             completeCanvas.toBlob((blob) => {
-                if (!blob) return 2
+                if (!blob) {
+                    window.alert("The pattern could not be downloaded. Please try Download again.")
+                    return 2
+                }
 
                 const now = new Date()
                 const pad = (value: number): string => value.toString().padStart(2, "0")
@@ -540,8 +551,21 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
 
                 downloadLink.href = downloadURL
                 downloadLink.download = filename
-                downloadLink.click()
-                URL.revokeObjectURL(downloadURL)
+                downloadLink.style.display = "none"
+                document.body.appendChild(downloadLink)
+                try {
+                    downloadLink.click()
+                } catch (error) {
+                    console.error("Pattern download failed", error)
+                    window.alert("Your browser blocked the download. Please try Download again.")
+                }
+
+                // Keep the URL alive long enough for browsers that start the
+                // download asynchronously, then release both resources.
+                window.setTimeout(() => {
+                    URL.revokeObjectURL(downloadURL)
+                    downloadLink.remove()
+                }, 1000)
             })
 
             return 0
@@ -559,6 +583,7 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
             canvas.removeEventListener("pointerdown", onPointerDown)
             canvas.removeEventListener("pointerup", onPointerUp)
             canvas.removeEventListener("pointercancel", onPointerUp)
+            canvas.removeEventListener("lostpointercapture", onLostPointerCapture)
 
             if (activePointerId !== null && canvas.hasPointerCapture(activePointerId)) {
                 canvas.releasePointerCapture(activePointerId)

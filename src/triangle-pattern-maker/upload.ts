@@ -1,5 +1,6 @@
 // Step One Helper
-import { showStep } from "./steps";
+import { showStep } from "./steps"
+import { resizeImageUrl, urlToImage } from "./imageUtils";
 
 const dropZone = document.getElementById("drop-zone") as HTMLDivElement
 const inputImage = document.getElementById("input-image") as HTMLInputElement
@@ -8,15 +9,33 @@ const uploadStatus = document.getElementById("upload-status") as HTMLParagraphEl
 const uploadFinishButton = document.getElementById("upload-finish-button") as HTMLButtonElement
 const UploadBackButton = document.getElementById("upload-back-button") as HTMLButtonElement
 
-function setImage(file: File | undefined): void {
-    if (!file || !file.type.startsWith("image/")) return
+async function setImage(file: File | undefined): Promise<void> {
+    if (!file || !file.type.startsWith("image/")) {
+        window.alert("Please choose an image file and try again.")
+        return
+    }
 
-    uploadedImage.src = URL.createObjectURL(file)
-    showStep("selected-image")
+    const sourceUrl = URL.createObjectURL(file)
+
+    try {
+        const image = await urlToImage(sourceUrl)
+        uploadedImage.src = resizeImageUrl(image)
+        uploadStatus.textContent = ""
+        uploadStatus.className = "empty"
+        showStep("selected-image")
+    } catch (error) {
+        console.error("Unable to load uploaded image", error)
+        uploadedImage.src = "/images/placeholder.png"
+        uploadStatus.textContent = "That image could not be loaded. Please choose a different image."
+        uploadStatus.className = "failed"
+        showStep("selected-image")
+    } finally {
+        URL.revokeObjectURL(sourceUrl)
+    }
 }
 
 function inputImageChange(): void {
-    setImage(inputImage.files?.[0])
+    void setImage(inputImage.files?.[0])
 }
 
 function click(e: MouseEvent): void {
@@ -40,7 +59,7 @@ function drop(e: DragEvent): void {
     e.preventDefault()
     dropZone.classList.remove("dragover")
 
-    setImage(e.dataTransfer?.files[0])
+    void setImage(e.dataTransfer?.files[0])
 }
 
 function backButtonPress(): void {

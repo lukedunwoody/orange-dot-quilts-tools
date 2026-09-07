@@ -24,4 +24,12 @@ async function main() {
     await letUserPreview(normalizedImageData, pointsData.gridWidth, pointsData.gridHeight)
 }
 
-while (true) await main()
+while (true) {
+    try {
+        await main()
+    } catch (error) {
+        console.error("Pattern generation failed", error)
+        window.alert("We could not process that image. Please try again, or use a browser that supports this tool.")
+        showStep("upload")
+    }
+}
