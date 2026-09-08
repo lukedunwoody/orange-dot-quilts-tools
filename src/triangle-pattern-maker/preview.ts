@@ -261,8 +261,8 @@ function getTriData(
 ): TriData {
     const imageW = pxPerGrid * xGridAmt
     const imageH = pxPerGrid * yGridAmt
-    const imageX = Math.min(Math.max(usedMouseX - imageOffset, 0), imageW - Number.EPSILON)
-    const imageY = Math.min(Math.max(usedMouseY - imageOffset, 0), imageH - Number.EPSILON)
+    const imageX = Math.min(Math.max(usedMouseX - imageOffset, 0), imageW - 1)
+    const imageY = Math.min(Math.max(usedMouseY - imageOffset, 0), imageH - 1)
 
     // Determine row and column inside the image, not the canvas border.
     const gridCords: Point = {
