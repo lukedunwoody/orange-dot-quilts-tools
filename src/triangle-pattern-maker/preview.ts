@@ -9,10 +9,11 @@ const X_OUTPUT_MULT = 3
 const Y_OUTPUT_MULT = 3
 
 // UI Appearance Config (percent of width)
-const LINE_WEIGHT: number     = 0.004
-const GRID_COLORS: string[]   = ["#000000FF", "#FFFFFFFF"]
-const HOVER_COLORS: string[]  = ["#00000088", "#FFFFFF88"]
-const ACTIVE_COLORS: string[] = ["#44444488", "#AAAAAA88"]
+const LINE_WEIGHT: number      = 0.004
+const GRID_COLORS: string[]    = ["#000000FF", "#FFFFFFFF"]
+const HOVER_COLORS: string[]   = ["#00000066", "#FFFFFF66"]
+const CURRENT_COLORS: string[] = ["#000000AA", "#FFFFFFAA"]
+const PRESSED_COLORS: string[] = ["#444444AA", "#AAAAAAAA"]
 
 // Elements
 const swapColorButton = document.getElementById("preview-swap-color") as HTMLButtonElement
@@ -38,20 +39,22 @@ interface TriData {
 let activeColorIndex: number = 0
 let gridColor: string = GRID_COLORS[activeColorIndex]!
 let hoverColor: string = HOVER_COLORS[activeColorIndex]!
-let activeColor: string = ACTIVE_COLORS[activeColorIndex]!
+let currentColor: string = CURRENT_COLORS[activeColorIndex]!
+let pressedColor: string = PRESSED_COLORS[activeColorIndex]!
 
 function swapColorPress(): void {
     activeColorIndex = (activeColorIndex + 1) % 2
     gridColor = GRID_COLORS[activeColorIndex]!
     hoverColor = HOVER_COLORS[activeColorIndex]!
-    activeColor = ACTIVE_COLORS[activeColorIndex]!
+    currentColor = CURRENT_COLORS[activeColorIndex]!
+    pressedColor = PRESSED_COLORS[activeColorIndex]!
 }
 
 let mouseX: number = 0
 let mouseY: number = 0
 let mouseDown: boolean = false
-let mouseLastDownX: number = 0
-let mouseLastDownY: number = 0
+let mouseLastDownX: number | null = null
+let mouseLastDownY: number | null = null
 let activePointerId: number | null = null
 let previewSelectionPending: boolean = false
 
@@ -323,16 +326,14 @@ function getTriData(
     }
 }
 
-function drawHover(pxPerGrid: number, imageOffset: number, xGridAmt: number, yGridAmt: number): void {
-    const triData: TriData = getTriData(pxPerGrid, imageOffset, xGridAmt, yGridAmt, mouseX, mouseY)
-
+function drawTriangle(triData: TriData, imageOffset: number, hover: boolean): void {
     ctx.beginPath()
     ctx.moveTo(triData.points[0].x + imageOffset, triData.points[0].y + imageOffset)
     ctx.lineTo(triData.points[1].x + imageOffset, triData.points[1].y + imageOffset)
     ctx.lineTo(triData.points[2].x + imageOffset, triData.points[2].y + imageOffset)
     ctx.closePath()
     ctx.lineWidth = 0
-    ctx.fillStyle = mouseDown ? activeColor : hoverColor
+    ctx.fillStyle = hover ? (mouseDown ? pressedColor : hoverColor) : currentColor
     ctx.fill()
 }
 
@@ -505,20 +506,33 @@ export function letUserPreview(normalizedImageData: ImageData, xGridAmt: number,
 
             ctx.putImageData(normalizedImageData, imageOffset, imageOffset)
 
-            const triData = getTriData(pxPerGrid, imageOffset, xGridAmt, yGridAmt, mouseLastDownX, mouseLastDownY)
+            const triDataMouse = getTriData(pxPerGrid, imageOffset, xGridAmt, yGridAmt, mouseX, mouseY)
+            let triDataLast: TriData | null = null
+            if (mouseLastDownX !== null && mouseLastDownY !== null) {
+                triDataLast = getTriData(pxPerGrid, imageOffset, xGridAmt, yGridAmt, mouseLastDownX, mouseLastDownY)
+            }
 
-            drawHover(pxPerGrid, imageOffset, xGridAmt, yGridAmt)
+            drawTriangle(triDataMouse, imageOffset, true)
+            if (
+                triDataLast &&
+                (triDataMouse.pos[0] !== triDataLast.pos[0] ||
+                triDataMouse.pos[1] !== triDataLast.pos[1] ||
+                triDataMouse.pos[2] !== triDataLast.pos[2])
+            ) {
+                drawTriangle(triDataLast, imageOffset, false)
+            }
+
             drawTriGrid(
                 cavnasW, canvasH,
                 imageW, imageH,
                 xGridAmt, yGridAmt
             )
 
-            if (previewSelectionPending && !completeFunctionWorking) {
+            if (triDataLast && previewSelectionPending && !completeFunctionWorking) {
                 previewSelectionPending = false
                 completeFunctionWorking = true
                 try {
-                    const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triData, pxPerGrid, doubleSidedInput.checked)
+                    const completeSquareData: ImageData = await constructCompletedSqaure(normalizedImageData, triDataLast, pxPerGrid, doubleSidedInput.checked)
 
                     if (stopped) return
 
